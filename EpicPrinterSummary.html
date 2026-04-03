@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Epic Printer Project Summary</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #f0f4f8;
+    --surface: #ffffff;
+    --surface2: #f8fafc;
+    --border: #e2e8f0;
+    --border2: #cbd5e1;
+    --accent: #0ea5e9;
+    --accent-dark: #0284c7;
+    --accent-light: #e0f2fe;
+    --warn: #d97706;
+    --warn-bg: #fffbeb;
+    --error: #dc2626;
+    --error-bg: #fef2f2;
+    --error-border: #fecaca;
+    --success: #059669;
+    --success-bg: #ecfdf5;
+    --success-border: #a7f3d0;
+    --text: #1e293b;
+    --text2: #475569;
+    --muted: #94a3b8;
+    --mono: 'DM Mono', monospace;
+    --sans: 'Inter', sans-serif;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.07);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; min-height: 100vh; }
+
+  /* Header */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 28px;
+    display: flex; align-items: center; gap: 14px;
+    box-shadow: var(--shadow);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo-icon {
+    width: 38px; height: 38px;
+    background: linear-gradient(135deg, var(--accent) 0%, #38bdf8 100%);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 19px; flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(14,165,233,0.25);
+  }
+  .header-text h1 { font-size: 15px; font-weight: 600; color: var(--text); }
+  .header-text p { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .header-actions { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 8px 16px; border-radius: 7px; border: none;
+    cursor: pointer; font-family: var(--sans); font-size: 13px; font-weight: 500;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 2px 6px rgba(14,165,233,0.3); }
+  .btn-primary:hover { background: var(--accent-dark); transform: translateY(-1px); }
+  .btn-secondary { background: var(--surface); color: var(--text2); border: 1px solid var(--border2); }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--surface2); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+
+  /* Main layout */
+  .page { max-width: 1200px; margin: 0 auto; padding: 28px 24px; }
+
+  /* Empty / load state */
+  .load-zone {
+    background: var(--surface);
+    border: 2px dashed var(--border2);
+    border-radius: 16px;
+    padding: 60px 40px;
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+    transition: border-color 0.2s, background 0.2s;
+    cursor: pointer;
+  }
+  .load-zone:hover { border-color: var(--accent); background: var(--accent-light); }
+  .load-zone .zone-icon { font-size: 48px; opacity: 0.5; }
+  .load-zone h2 { font-size: 18px; font-weight: 600; color: var(--text); }
+  .load-zone p { font-size: 13px; color: var(--muted); max-width: 380px; line-height: 1.6; }
+  .load-zone .note { font-size: 11px; color: var(--muted); font-family: var(--mono); background: var(--surface2); padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); }
+
+  /* Project stats bar */
+  .project-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 24px;
+    display: flex; gap: 0; align-items: center;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 0;
+  }
+  .proj-stat {
+    flex: 1; min-width: 120px;
+    padding: 0 20px;
+    border-right: 1px solid var(--border);
+    text-align: center;
+  }
+  .proj-stat:first-child { padding-left: 0; }
+  .proj-stat:last-child { border-right: none; padding-right: 0; }
+  .proj-stat-val { font-family: var(--mono); font-size: 28px; font-weight: 500; color: var(--text); line-height: 1; }
+  .proj-stat-val.error { color: var(--error); }
+  .proj-stat-val.success { color: var(--success); }
+  .proj-stat-val.warn { color: var(--warn); }
+  .proj-stat-label { font-size: 10px; color: var(--muted); margin-top: 5px; text-transform: uppercase; letter-spacing: 0.4px; font-weight: 500; }
+
+  /* Run list */
+  .section-title {
+    font-size: 11px; font-weight: 600; color: var(--text2);
+    text-transform: uppercase; letter-spacing: 0.8px;
+    margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+  }
+  .section-title .count {
+    background: var(--border);
+    color: var(--text2);
+    font-family: var(--mono);
+    font-size: 10px; padding: 2px 7px; border-radius: 10px;
+  }
+
+  .run-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .run-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: box-shadow 0.15s;
+  }
+  .run-card:hover { box-shadow: var(--shadow-md); }
+
+  .run-header {
+    padding: 14px 18px;
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .run-header:hover { background: var(--surface2); }
+
+  .run-status {
+    width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  }
+  .run-status.all-clear { background: var(--success); box-shadow: 0 0 0 3px var(--success-bg); }
+  .run-status.has-errors { background: var(--error); box-shadow: 0 0 0 3px var(--error-bg); }
+  .run-status.partial { background: var(--warn); box-shadow: 0 0 0 3px var(--warn-bg); }
+
+  .run-name { font-weight: 500; color: var(--text); font-size: 13px; flex: 1; }
+  .run-meta { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+
+  .run-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip {
+    padding: 3px 9px; border-radius: 4px;
+    font-size: 10px; font-weight: 600; font-family: var(--mono);
+    white-space: nowrap;
+  }
+  .chip-pairs { background: #dbeafe; color: #1d4ed8; }
+  .chip-errors { background: var(--error-bg); color: var(--error); border: 1px solid var(--error-border); }
+  .chip-clean { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); }
+
+  .run-chevron { color: var(--muted); font-size: 12px; transition: transform 0.2s; flex-shrink: 0; }
+  .run-chevron.open { transform: rotate(90deg); }
+
+  /* Run detail panel */
+  .run-detail {
+    border-top: 1px solid var(--border);
+    background: var(--surface2);
+    display: none;
+  }
+  .run-detail.open { display: block; }
+
+  /* Error rows inside detail */
+  .detail-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .detail-table th {
+    background: var(--surface);
+    padding: 8px 16px;
+    text-align: left;
+    font-family: var(--mono); font-size: 10px; font-weight: 500;
+    color: var(--muted); letter-spacing: 0.4px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .detail-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    font-family: var(--mono); font-size: 11px;
+    line-height: 1.6; color: var(--text);
+  }
+  .detail-table tr:last-child td { border-bottom: none; }
+
+  .badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 600; font-family: var(--mono); }
+  .badge-error { background: var(--error-bg); color: var(--error); border: 1px solid var(--error-border); }
+  .badge-warn  { background: var(--warn-bg); color: var(--warn); border: 1px solid #fde68a; }
+
+
+  /* Affected locations nested */
+  .affected { margin-top: 5px; font-size: 10px; color: var(--text2); }
+  .affected-group { margin-top:3px; }
+  .affected-item { padding-left: 12px; color: var(--text2); line-height: 1.9; }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--text); color: #fff;
+    padding: 10px 20px; border-radius: 8px;
+    font-size: 13px; font-weight: 500;
+    box-shadow: var(--shadow-md);
+    opacity: 0; transition: opacity 0.3s;
+    pointer-events: none; z-index: 999;
+  }
+  .toast.show { opacity: 1; }
+
+  /* Folder info bar */
+  .folder-bar {
+    background: var(--accent-light);
+    border: 1px solid #bae6fd;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 12px;
+    color: var(--accent-dark);
+    font-family: var(--mono);
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 20px;
+  }
+  .folder-bar .folder-path { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .hidden { display: none !important; }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-icon">📊</div>
+  <div class="header-text">
+    <h1>Epic Printer Project Summary</h1>
+    <p>Track build progress across all batches</p>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-secondary" onclick="window.location.href='EpicPrinterAnalyzer.html'">← Back to Analyzer</button>
+    <button class="btn btn-ghost" id="reload-btn" onclick="reloadFolder()" disabled>↺ Reload Folder</button>
+    <button class="btn btn-primary" id="load-btn" onclick="pickFolder()">📁 Select Project Folder</button>
+  </div>
+</header>
+
+<div class="page">
+
+  <!-- Load zone -->
+  <div class="load-zone" id="load-zone" onclick="pickFolder()">
+    <div class="zone-icon">📁</div>
+    <h2>Select your project folder</h2>
+    <p>Choose the folder where your Epic Printer Build Review Excel files are saved. All Excel files in that folder will be scanned automatically.</p>
+    <div class="note">Works in Chrome and Edge · Requires File System Access API</div>
+  </div>
+
+  <!-- Dashboard (hidden until loaded) -->
+  <div id="dashboard" class="hidden">
+
+    <div class="folder-bar">
+      <span>📁</span>
+      <span class="folder-path" id="folder-path">—</span>
+      <span id="file-count" style="color:var(--muted)"></span>
+    </div>
+
+    <!-- Project stats -->
+    <div class="project-bar" id="project-bar">
+      <div class="proj-stat">
+        <div class="proj-stat-val" id="stat-runs">0</div>
+        <div class="proj-stat-label">Batches</div>
+      </div>
+      <div class="proj-stat">
+        <div class="proj-stat-val" id="stat-pairs">0</div>
+        <div class="proj-stat-label">Total Pairs</div>
+      </div>
+      <div class="proj-stat">
+        <div class="proj-stat-val error" id="stat-errors">0</div>
+        <div class="proj-stat-label">Total Errors</div>
+      </div>
+      <div class="proj-stat">
+        <div class="proj-stat-val" id="stat-clean">0</div>
+        <div class="proj-stat-label">Clean Batches</div>
+      </div>
+    </div>
+
+    <!-- Run list -->
+    <div class="section-title">
+      Batches <span class="count" id="run-count">0</span>
+    </div>
+    <div class="run-list" id="run-list"></div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let folderHandle = null;
+let runs = [];
+
+// ─── Folder picker ────────────────────────────────────────────────────────────
+async function pickFolder() {
+  try {
+    folderHandle = await window.showDirectoryPicker({ mode: 'read' });
+    document.getElementById('reload-btn').disabled = false;
+    await loadFolder();
+  } catch(e) {
+    if (e.name !== 'AbortError') showToast('Could not open folder: ' + e.message);
+  }
+}
+
+async function reloadFolder() {
+  if (!folderHandle) return;
+  await loadFolder();
+}
+
+async function loadFolder() {
+  runs = [];
+  const xlsxFiles = [];
+  for await (const entry of folderHandle.values()) {
+    if (entry.kind === 'file' && entry.name.match(/\.xlsx?$/i) && entry.name.includes('Build_Review')) {
+      xlsxFiles.push(entry);
+    }
+  }
+  if (!xlsxFiles.length) {
+    showToast('No Epic_Printer_Build_Review Excel files found in this folder.');
+    return;
+  }
+  xlsxFiles.sort((a, b) => a.name.localeCompare(b.name));
+  document.getElementById('folder-path').textContent = folderHandle.name;
+  document.getElementById('file-count').textContent = `${xlsxFiles.length} file${xlsxFiles.length !== 1 ? 's' : ''} found`;
+  for (const entry of xlsxFiles) {
+    try {
+      const file = await entry.getFile();
+      const buf = await file.arrayBuffer();
+      const run = parseRunFromExcel(buf, entry.name);
+      if (run) runs.push(run);
+    } catch(e) {
+      console.warn('Could not parse', entry.name, e);
+    }
+  }
+  document.getElementById('load-zone').classList.add('hidden');
+  document.getElementById('dashboard').classList.remove('hidden');
+  renderDashboard();
+}
+
+// ─── Parse a Build Review Excel file ─────────────────────────────────────────
+function parseRunFromExcel(buf, filename) {
+  const wb = XLSX.read(buf, { type: 'array' });
+  let runDate = '', eprFile = '', lwsFile = '', lomFile = '';
+  const riSheet = wb.Sheets['Run Info'];
+  if (riSheet) {
+    const ri = XLSX.utils.sheet_to_json(riSheet, { header: 1, defval: '' });
+    for (const row of ri.slice(1)) {
+      if ((row[0]+'').toUpperCase() === 'EPR') eprFile = row[1] || '';
+      if ((row[0]+'').toUpperCase() === 'LWS') lwsFile = row[1] || '';
+      if ((row[0]+'').toUpperCase() === 'LOM') lomFile = row[1] || '';
+      if (row[2] && !runDate) runDate = row[2] || '';
+    }
+  }
+  let pairCount = 0;
+  const brSheet = wb.Sheets['Build Review'];
+  if (brSheet) {
+    const br = XLSX.utils.sheet_to_json(brSheet, { header: 1, defval: '' });
+    pairCount = Math.max(0, br.length - 1);
+  }
+  const rawErrors = [];
+  const errSheet = wb.Sheets['Errors'];
+  if (errSheet) {
+    const errRows = XLSX.utils.sheet_to_json(errSheet, { header: 1, defval: '' });
+    const headers = errRows[0] || [];
+    const sevIdx  = headers.findIndex(h => /severity/i.test(h));
+    const pairIdx = headers.findIndex(h => /pair/i.test(h));
+    const causeIdx = headers.findIndex(h => /root|cause|issue/i.test(h));
+    const actionIdx = headers.findIndex(h => /action/i.test(h));
+    for (const row of errRows.slice(1)) {
+      if (!row[sevIdx] && !row[causeIdx]) continue;
+      rawErrors.push({
+        severity: (row[sevIdx] || 'ERROR').toString().trim(),
+        pair: (row[pairIdx] || '').toString().trim(),
+        issue: (row[causeIdx] || '').toString().trim(),
+        action: (row[actionIdx] || '').toString().trim(),
+      });
+    }
+  }
+  const tsMatch = filename.match(/(\d{8})_(\d{6})/);
+  let displayDate = runDate;
+  if (tsMatch && !displayDate) {
+    const d = tsMatch[1], t = tsMatch[2];
+    displayDate = `${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)} ${t.slice(0,2)}:${t.slice(2,4)}`;
+  }
+  return { id: filename.replace(/[^a-z0-9]/gi,'_'), filename, displayDate, eprFile, lwsFile, lomFile, pairCount, errors: rawErrors };
+}
+
+// ─── Render dashboard ─────────────────────────────────────────────────────────
+function renderDashboard() {
+  let totalPairs = 0, totalErrors = 0, cleanBatches = 0;
+  for (const run of runs) {
+    totalPairs += run.pairCount;
+    totalErrors += run.errors.length;
+    if (run.errors.length === 0) cleanBatches++;
+  }
+  document.getElementById('stat-runs').textContent = runs.length;
+  document.getElementById('stat-pairs').textContent = totalPairs.toLocaleString();
+  document.getElementById('stat-errors').textContent = totalErrors;
+  document.getElementById('stat-clean').textContent = cleanBatches;
+  document.getElementById('run-count').textContent = runs.length;
+  const list = document.getElementById('run-list');
+  list.innerHTML = '';
+  for (const run of runs) list.appendChild(buildRunCard(run));
+}
+
+// ─── Build run card ───────────────────────────────────────────────────────────
+function buildRunCard(run) {
+  const hasErrors = run.errors.length > 0;
+  const card = document.createElement('div');
+  card.className = 'run-card';
+  card.id = 'card-' + run.id;
+  const dotClass = hasErrors ? 'has-errors' : 'all-clear';
+  const errChip = hasErrors
+    ? `<span class="chip chip-errors">${run.errors.length} error${run.errors.length !== 1 ? 's' : ''}</span>`
+    : `<span class="chip chip-clean">✓ Clean</span>`;
+  const displayName = run.filename.replace('Epic_Printer_Build_Review_','Batch ').replace('.xlsx','');
+  const metaLine = [run.eprFile, run.displayDate].filter(Boolean).join(' · ');
+  card.innerHTML = `
+    <div class="run-header" onclick="toggleCard('${run.id}')">
+      <div class="run-status ${dotClass}"></div>
+      <div style="flex:1;min-width:0">
+        <div class="run-name">${esc(displayName)}</div>
+        <div class="run-meta">${esc(metaLine)}</div>
+      </div>
+      <div class="run-chips">
+        <span class="chip chip-pairs">${run.pairCount} pairs</span>
+        ${errChip}
+      </div>
+      <div class="run-chevron" id="chev-${run.id}">▶</div>
+    </div>
+    <div class="run-detail" id="detail-${run.id}">
+      ${buildDetailHtml(run)}
+    </div>`;
+  return card;
+}
+
+function buildDetailHtml(run) {
+  if (run.errors.length === 0) {
+    return `<div style="padding:20px 18px;color:var(--success);font-size:13px;font-weight:500">✓ No errors in this batch — all pairs processed cleanly.</div>`;
+  }
+  const errRows = run.errors.map(err => {
+    const isErr = err.severity === 'ERROR';
+    const badge = isErr
+      ? '<span class="badge badge-error">ERROR</span>'
+      : '<span class="badge badge-warn">WARN</span>';
+    return `<tr>
+      <td>${badge}</td>
+      <td style="white-space:nowrap;color:var(--text2)">${esc(err.pair)}</td>
+      <td style="color:${isErr?'var(--error)':'var(--warn)'}">${esc(err.issue)}</td>
+      <td style="color:var(--text2)">${esc(err.action)}</td>
+    </tr>`;
+  }).join('');
+  return `
+    <table class="detail-table">
+      <thead><tr>
+        <th>Severity</th><th>Pair</th><th>Issue</th><th>Action Required</th>
+      </tr></thead>
+      <tbody>${errRows}</tbody>
+    </table>`;
+}
+
+function toggleCard(runId) {
+  const detail = document.getElementById('detail-' + runId);
+  const chev = document.getElementById('chev-' + runId);
+  const isOpen = detail.classList.contains('open');
+  detail.classList.toggle('open', !isOpen);
+  chev.classList.toggle('open', !isOpen);
+}
+
+function esc(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function showToast(msg, duration = 3000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// Check for File System Access API support
+if (!window.showDirectoryPicker) {
+  document.querySelector('.load-zone p').textContent =
+    'Your browser does not support the File System Access API. Please use Chrome or Edge.';
+  document.querySelector('.load-zone .note').textContent = 'Chrome 86+ or Edge 86+ required';
+}
+</script>
+</body>
+</html>
