@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Epic Printer Replacement Analyzer</title>
+<title>Epic Printer Build Comparison Tool v3</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap');
@@ -33,395 +33,157 @@
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; min-height: 100vh; }
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    font-size: 14px;
-    min-height: 100vh;
-  }
-
-  /* Header */
   header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 16px 28px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 16px 28px; display: flex; align-items: center; gap: 14px;
     box-shadow: var(--shadow);
   }
   .logo-icon {
     width: 38px; height: 38px;
     background: linear-gradient(135deg, var(--accent) 0%, #38bdf8 100%);
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 19px; flex-shrink: 0;
-    box-shadow: 0 2px 8px rgba(14,165,233,0.25);
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-size: 19px; flex-shrink: 0; box-shadow: 0 2px 8px rgba(14,165,233,0.25);
   }
-  header h1 {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--text);
-    letter-spacing: -0.2px;
-  }
-  header p {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 2px;
+  header h1 { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -0.2px; }
+  header p { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .version-badge {
+    margin-left: auto; background: var(--surface2); border: 1px solid var(--border2);
+    color: var(--muted); font-family: var(--mono); font-size: 10px; font-weight: 500;
+    padding: 3px 9px; border-radius: 4px;
   }
 
-  /* Layout */
-  .app { display: flex; gap: 0; height: calc(100vh - 71px); }
-
-  /* Sidebar */
+  .app { display: flex; height: calc(100vh - 71px); }
   .sidebar {
-    width: 340px;
-    flex-shrink: 0;
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
+    width: 340px; flex-shrink: 0; background: var(--surface);
+    border-right: 1px solid var(--border); overflow-y: auto; display: flex; flex-direction: column;
   }
-
-  .section {
-    border-bottom: 1px solid var(--border);
-    padding: 16px;
-  }
+  .section { border-bottom: 1px solid var(--border); padding: 16px; }
   .section-title {
-    font-family: var(--mono);
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--muted);
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    margin-bottom: 12px;
+    font-family: var(--mono); font-size: 10px; font-weight: 600; color: var(--muted);
+    letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 12px;
   }
-
-  /* File inputs */
-  .file-row {
-    margin-bottom: 10px;
-  }
-  .file-row label {
-    display: block;
-    font-size: 11px;
-    color: var(--muted);
-    margin-bottom: 4px;
-    font-weight: 500;
-  }
+  .file-row { margin-bottom: 10px; }
+  .file-row label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 4px; font-weight: 500; }
   .file-drop {
-    position: relative;
-    border: 1px dashed var(--border);
-    border-radius: 6px;
-    padding: 8px 12px;
-    cursor: pointer;
-    transition: border-color 0.2s, background 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--surface2);
+    position: relative; border: 1px dashed var(--border); border-radius: 6px;
+    padding: 8px 12px; cursor: pointer; transition: border-color 0.2s, background 0.2s;
+    display: flex; align-items: center; gap: 8px; background: var(--surface2);
   }
   .file-drop:hover { border-color: var(--accent); }
   .file-drop.loaded { border-color: var(--success); border-style: solid; }
   .file-drop.loaded .file-icon { color: var(--success); }
   .file-icon { font-size: 14px; color: var(--muted); flex-shrink: 0; }
-  .file-name {
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--text);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    flex: 1;
-  }
+  .file-name { font-family: var(--mono); font-size: 10px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
   .file-name.placeholder { color: var(--muted); }
-  .file-drop input[type=file] {
-    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
-  }
+  .file-drop input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
 
-  /* Paste box */
-  .paste-label {
-    font-size: 11px;
-    color: var(--muted);
-    margin-bottom: 6px;
-    line-height: 1.5;
-  }
-  .paste-label code {
-    font-family: var(--mono);
-    background: var(--surface2);
-    padding: 1px 4px;
-    border-radius: 3px;
-    font-size: 10px;
-    color: var(--accent2);
-  }
+  .paste-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; line-height: 1.5; }
+  .paste-label code { font-family: var(--mono); background: var(--surface2); padding: 1px 4px; border-radius: 3px; font-size: 10px; color: var(--accent-dark); }
   textarea {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 12px;
-    padding: 8px 10px;
-    resize: vertical;
-    min-height: 110px;
-    line-height: 1.6;
-    outline: none;
-    transition: border-color 0.2s;
+    width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text); font-family: var(--mono); font-size: 12px; padding: 8px 10px;
+    resize: vertical; min-height: 110px; line-height: 1.6; outline: none; transition: border-color 0.2s;
   }
   textarea:focus { border-color: var(--accent); }
 
-  /* Options */
-  .checkbox-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    padding: 4px 0;
-  }
+  .checkbox-row { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 4px 0; }
   .checkbox-row input { accent-color: var(--accent); cursor: pointer; }
   .checkbox-row span { font-size: 12px; color: var(--text); }
 
-  /* Buttons */
   .btn-group { display: flex; flex-direction: column; gap: 8px; padding: 16px; }
   .btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 10px 16px;
-    border-radius: 7px;
-    border: none;
-    cursor: pointer;
-    font-family: var(--sans);
-    font-size: 13px;
-    font-weight: 500;
-    transition: all 0.15s;
-    width: 100%;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 10px 16px; border-radius: 7px; border: none; cursor: pointer;
+    font-family: var(--sans); font-size: 13px; font-weight: 500; transition: all 0.15s; width: 100%;
   }
-  .btn-primary {
-    background: var(--accent);
-    color: #fff;
-  }
+  .btn-primary { background: var(--accent); color: #fff; }
   .btn-primary:hover { background: var(--accent-dark); transform: translateY(-1px); }
   .btn-primary:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; transform: none; }
-  .btn-secondary {
-    background: var(--surface2);
-    color: var(--text);
-    border: 1px solid var(--border);
-  }
-  .btn-secondary:hover { border-color: var(--accent); color: var(--accent2); }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent-dark); }
 
-  /* Main content */
-  .main {
-    flex: 1;
-    overflow-y: auto;
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
+  .main { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
 
-  /* Status bar */
   .status-bar {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--muted);
-    min-height: 44px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px 16px; display: flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: 12px; color: var(--muted); min-height: 44px;
   }
-  .status-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--muted);
-    flex-shrink: 0;
-  }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
   .status-dot.running { background: var(--accent); animation: pulse 1s infinite; }
   .status-dot.success { background: var(--success); }
   .status-dot.error { background: var(--error); }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
-  /* Stats grid */
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 10px;
-  }
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .stat-label {
-    font-size: 10px;
-    color: var(--muted);
-    font-weight: 500;
-    line-height: 1.4;
-  }
-  .stat-value {
-    font-family: var(--mono);
-    font-size: 24px;
-    font-weight: 500;
-    color: var(--text);
-    margin-top: 4px;
-  }
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 4px; }
+  .stat-label { font-size: 10px; color: var(--muted); font-weight: 500; line-height: 1.4; }
+  .stat-value { font-family: var(--mono); font-size: 24px; font-weight: 500; color: var(--text); margin-top: 4px; }
   .stat-card.success .stat-value { color: var(--success); }
   .stat-card.warn .stat-value { color: var(--warn); }
   .stat-card.error-card .stat-value { color: var(--error); }
-  .stat-card.success .stat-value { color: var(--success); }
 
-  /* Results table */
-  .results-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: var(--shadow-md);
-  }
-  .results-header {
-    padding: 14px 18px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--surface2);
-  }
-  .results-title {
-    font-family: var(--mono);
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text);
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-  }
-  .tab-bar {
-    display: flex;
-    gap: 2px;
-    background: var(--border);
-    padding: 3px;
-    border-radius: 8px;
-  }
-  .tab {
-    padding: 5px 12px;
-    border-radius: 4px;
-    font-size: 11px;
-    cursor: pointer;
-    color: var(--muted);
-    font-weight: 500;
-    transition: all 0.15s;
-    border: none;
-    background: none;
-  }
+  .results-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-md); }
+  .results-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--surface2); flex-wrap: wrap; gap: 8px; }
+  .results-title { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--text); letter-spacing: 0.5px; text-transform: uppercase; }
+  .tab-bar { display: flex; gap: 2px; background: var(--border); padding: 3px; border-radius: 8px; flex-wrap: wrap; }
+  .tab { padding: 5px 12px; border-radius: 4px; font-size: 11px; cursor: pointer; color: var(--muted); font-weight: 500; transition: all 0.15s; border: none; background: none; }
   .tab.active { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
   .tab:hover:not(.active) { color: var(--text); }
 
-  .table-wrap { overflow-x: auto; }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-  }
+  /* Scrollable + resizable tables */
+  .table-wrap { overflow-x: auto; overflow-y: auto; max-height: 520px; position: relative; }
+  table { width: max-content; min-width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
   th {
-    background: var(--surface2);
-    padding: 9px 13px;
-    text-align: left;
-    font-family: var(--mono);
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--muted);
-    letter-spacing: 0.5px;
-    white-space: nowrap;
-    border-bottom: 1px solid var(--border);
-    position: sticky;
-    top: 0;
+    background: var(--surface2); padding: 9px 13px; text-align: left;
+    font-family: var(--mono); font-size: 10px; font-weight: 600; color: var(--muted);
+    letter-spacing: 0.5px; white-space: nowrap; border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border); position: sticky; top: 0; z-index: 2;
+    overflow: hidden; min-width: 80px; user-select: none; position: relative;
   }
+  th:last-child { border-right: none; }
+  th .resize-handle {
+    position: absolute; right: 0; top: 0; bottom: 0; width: 5px;
+    cursor: col-resize; background: transparent; z-index: 3;
+  }
+  th .resize-handle:hover, th.resizing .resize-handle { background: var(--accent); opacity: 0.5; }
   td {
-    padding: 9px 13px;
-    border-bottom: 1px solid var(--border);
-    vertical-align: top;
-    white-space: pre-wrap;
-    font-family: var(--mono);
-    font-size: 11px;
-    line-height: 1.5;
-    max-width: 200px;
+    padding: 9px 13px; border-bottom: 1px solid var(--border); border-right: 1px solid #f1f5f9;
+    vertical-align: top; white-space: pre-wrap; font-family: var(--mono); font-size: 11px;
+    line-height: 1.5; overflow: hidden; word-break: break-word;
   }
+  td:last-child { border-right: none; }
+  tr:last-child td { border-bottom: none; }
   tr:hover td { background: #f8fafc; }
   tr.row-error td { background: var(--error-bg); }
   tr.row-error:hover td { background: #fee2e2; }
   tr.row-warn td { background: var(--warn-bg); }
+  tr.row-warn:hover td { background: #fef3c7; }
 
-  .badge {
-    display: inline-block;
-    padding: 2px 7px;
-    border-radius: 3px;
-    font-size: 10px;
-    font-weight: 600;
-    font-family: var(--mono);
-    white-space: nowrap;
-  }
+  .badge { display: inline-block; padding: 2px 7px; border-radius: 3px; font-size: 10px; font-weight: 600; font-family: var(--mono); white-space: nowrap; }
   .badge-both { background: #dbeafe; color: #1d4ed8; }
-  .badge-lws { background: #1a3a2a; color: #4ade80; }
-  .badge-lom { background: #2a2a1a; color: #fbbf24; }
+  .badge-lws { background: #dcfce7; color: #15803d; }
+  .badge-lom { background: #fef9c3; color: #854d0e; }
   .badge-none { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
   .badge-error { background: var(--error-bg); color: var(--error); border: 1px solid var(--error-border); }
 
-  /* Empty state */
-  .empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    padding: 60px 20px;
-    color: var(--muted);
-    text-align: center;
-  }
+  .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 60px 20px; color: var(--muted); text-align: center; }
   .empty-state .icon { font-size: 40px; opacity: 0.4; }
   .empty-state h3 { font-size: 15px; color: var(--text); opacity: 0.6; }
   .empty-state p { font-size: 12px; line-height: 1.6; max-width: 320px; }
 
-  /* Progress */
-  .progress-bar {
-    height: 2px;
-    background: var(--border);
-    border-radius: 1px;
-    overflow: hidden;
-    margin-top: 8px;
-  }
-  .progress-fill {
-    height: 100%;
-    background: var(--accent);
-    transition: width 0.3s;
-    border-radius: 1px;
-  }
+  .progress-bar { height: 2px; background: var(--border); border-radius: 1px; overflow: hidden; margin-top: 8px; }
+  .progress-fill { height: 100%; background: var(--accent); transition: width 0.3s; border-radius: 1px; }
 
-  /* File sources info */
   .source-info {
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--muted);
-    padding: 10px 18px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-    background: var(--surface2);
+    font-family: var(--mono); font-size: 10px; color: var(--muted);
+    padding: 10px 18px; border-top: 1px solid var(--border);
+    display: flex; gap: 16px; flex-wrap: wrap; background: var(--surface2);
   }
   .source-info span { color: var(--accent-dark); }
 
-  /* Scrollbar */
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
   ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
@@ -442,51 +204,47 @@
 <body>
 
 <header>
-  <div class="logo-icon">🖨</div>
+  <div class="logo-icon">&#x1F5A8;</div>
   <div>
-    <h1>Epic Printer Replacement Analyzer</h1>
-    <p>EPR · LWS · LOM · Build Review Generator</p>
+    <h1>Epic Printer Build Comparison Tool</h1>
+    <p>EPR &middot; LWS &middot; LOM &middot; Build Review Generator</p>
   </div>
+  <div class="version-badge">v3.0</div>
 </header>
 
 <div class="app">
-  <!-- Sidebar -->
   <aside class="sidebar">
     <div class="section">
       <div class="section-title">Source Files</div>
-
       <div class="file-row">
         <label>EPR Export (XML/Excel)</label>
         <div class="file-drop" id="epr-drop">
-          <span class="file-icon">📄</span>
-          <span class="file-name placeholder" id="epr-name">Click to select file…</span>
+          <span class="file-icon">&#x1F4C4;</span>
+          <span class="file-name placeholder" id="epr-name">Click to select file&hellip;</span>
           <input type="file" id="epr-file" accept=".xml,.xlsx,.xlsm,.xls">
         </div>
       </div>
-
       <div class="file-row">
         <label>LWS Export (XML/Excel)</label>
         <div class="file-drop" id="lws-drop">
-          <span class="file-icon">📄</span>
-          <span class="file-name placeholder" id="lws-name">Click to select file…</span>
+          <span class="file-icon">&#x1F4C4;</span>
+          <span class="file-name placeholder" id="lws-name">Click to select file&hellip;</span>
           <input type="file" id="lws-file" accept=".xml,.xlsx,.xlsm,.xls">
         </div>
       </div>
-
       <div class="file-row">
         <label>LOM Export (XML/Excel)</label>
         <div class="file-drop" id="lom-drop">
-          <span class="file-icon">📄</span>
-          <span class="file-name placeholder" id="lom-name">Click to select file…</span>
+          <span class="file-icon">&#x1F4C4;</span>
+          <span class="file-name placeholder" id="lom-name">Click to select file&hellip;</span>
           <input type="file" id="lom-file" accept=".xml,.xlsx,.xlsm,.xls">
         </div>
       </div>
-
       <div class="file-row">
         <label>EUTS Export (Excel)</label>
         <div class="file-drop" id="euts-drop">
-          <span class="file-icon">📄</span>
-          <span class="file-name placeholder" id="euts-name">Click to select file…</span>
+          <span class="file-icon">&#x1F4C4;</span>
+          <span class="file-name placeholder" id="euts-name">Click to select file&hellip;</span>
           <input type="file" id="euts-file" accept=".xlsx,.xlsm,.xls">
         </div>
       </div>
@@ -505,8 +263,7 @@
       <div class="section-title">Options</div>
       <div class="file-row">
         <label>Batch Name (optional)</label>
-        <input type="text" id="batch-name"
-          placeholder="e.g. ICU Floor 3"
+        <input type="text" id="batch-name" placeholder="e.g. ICU Floor 3"
           style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;
                  color:var(--text);font-family:var(--sans);font-size:13px;padding:7px 10px;outline:none;
                  transition:border-color 0.2s;"
@@ -524,72 +281,37 @@
     </div>
 
     <div class="btn-group">
-      <button class="btn btn-secondary" onclick="validatePairs()">✓ Validate Pairs</button>
-      <button class="btn btn-ghost" onclick="loadDemo()" title="Load sample data to preview the tool">🧪 Load Demo Data</button>
-      <button class="btn btn-primary" id="run-btn" onclick="runAnalysis()">⚡ Generate Build Review</button>
-      <button class="btn btn-secondary" id="download-btn" onclick="downloadExcel()" style="display:none">⬇ Download Excel Report</button>
-      <button class="btn btn-secondary" id="download-flat-btn" onclick="downloadFlat()" style="display:none">⬇ Download LWS Flat File</button>
-      <button class="btn btn-secondary" id="download-lom-flat-btn" onclick="downloadLomFlat()" style="display:none">⬇ Download LOM Flat File</button>
-      <button class="btn btn-secondary" onclick="window.open('EpicPrinterSummary.html','_blank')" style="margin-top:8px;border-top:1px solid var(--border);padding-top:16px">📊 Open Project Summary</button>
+      <button class="btn btn-secondary" onclick="validatePairs()">&#x2713; Validate Pairs</button>
+      <button class="btn btn-primary" id="run-btn" onclick="runAnalysis()">&#x26A1; Generate Build Review</button>
+      <button class="btn btn-secondary" id="download-btn" onclick="downloadExcel()" style="display:none">&#x2B07; Download Excel Report</button>
+      <button class="btn btn-secondary" id="download-flat-btn" onclick="downloadFlat()" style="display:none">&#x2B07; Download LWS Flat File</button>
+      <button class="btn btn-secondary" id="download-lom-flat-btn" onclick="downloadLomFlat()" style="display:none">&#x2B07; Download LOM Flat File</button>
+      <button class="btn btn-secondary" onclick="window.open('EpicPrinterSummary.html','_blank')" style="margin-top:8px;border-top:1px solid var(--border);padding-top:16px">&#x1F4CA; Open Project Summary</button>
     </div>
   </aside>
 
-  <!-- Main -->
   <main class="main">
-    <!-- Status -->
     <div class="status-bar">
       <div class="status-dot" id="status-dot"></div>
-      <span id="status-text">Ready — load source files and paste printer pairs to begin.</span>
+      <span id="status-text">Ready &mdash; load source files and paste printer pairs to begin.</span>
     </div>
     <div class="progress-bar" id="progress-wrap" style="display:none">
       <div class="progress-fill" id="progress-fill" style="width:0%"></div>
     </div>
 
-    <!-- Stats -->
     <div class="stats-grid" id="stats-grid" style="display:none">
-      <div class="stat-card">
-        <div class="stat-label">Pairs Processed</div>
-        <div class="stat-value" id="s-pairs">0</div>
-      </div>
-      <div class="stat-card success">
-        <div class="stat-label">Removed D# Found in EPR</div>
-        <div class="stat-value" id="s-removed">0</div>
-      </div>
-      <div class="stat-card success">
-        <div class="stat-label">Replacement D# Found</div>
-        <div class="stat-value" id="s-replacement">0</div>
-      </div>
-      <div class="stat-card warn">
-        <div class="stat-label">Fewer Trays on Replacement</div>
-        <div class="stat-value" id="s-fewer">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Pairs w/ LWS Updates</div>
-        <div class="stat-value" id="s-lws">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Pairs w/ LOM Updates</div>
-        <div class="stat-value" id="s-lom">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">LWS Print Mapping Rows</div>
-        <div class="stat-value" id="s-lwsrows">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">LWS Group Rows</div>
-        <div class="stat-value" id="s-grprows">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">LOM Update Rows</div>
-        <div class="stat-value" id="s-lomrows">0</div>
-      </div>
-      <div class="stat-card error-card">
-        <div class="stat-label">Pairs Flagged w/ Errors</div>
-        <div class="stat-value" id="s-errors">0</div>
-      </div>
+      <div class="stat-card"><div class="stat-label">Pairs Processed</div><div class="stat-value" id="s-pairs">0</div></div>
+      <div class="stat-card success"><div class="stat-label">Removed D# Found in EPR</div><div class="stat-value" id="s-removed">0</div></div>
+      <div class="stat-card success"><div class="stat-label">Replacement D# Found</div><div class="stat-value" id="s-replacement">0</div></div>
+      <div class="stat-card warn"><div class="stat-label">Fewer Trays on Replacement</div><div class="stat-value" id="s-fewer">0</div></div>
+      <div class="stat-card"><div class="stat-label">Pairs w/ LWS Updates</div><div class="stat-value" id="s-lws">0</div></div>
+      <div class="stat-card"><div class="stat-label">Pairs w/ LOM Updates</div><div class="stat-value" id="s-lom">0</div></div>
+      <div class="stat-card"><div class="stat-label">LWS Print Mapping Rows</div><div class="stat-value" id="s-lwsrows">0</div></div>
+      <div class="stat-card"><div class="stat-label">LWS Group Rows</div><div class="stat-value" id="s-grprows">0</div></div>
+      <div class="stat-card"><div class="stat-label">LOM Update Rows</div><div class="stat-value" id="s-lomrows">0</div></div>
+      <div class="stat-card error-card"><div class="stat-label">Pairs Flagged w/ Errors</div><div class="stat-value" id="s-errors">0</div></div>
     </div>
 
-    <!-- Results -->
     <div class="results-section" id="results-section">
       <div class="results-header">
         <span class="results-title">Results</span>
@@ -598,144 +320,125 @@
           <button class="tab" onclick="showTab('lws-print')">LWS Print Mapping</button>
           <button class="tab" onclick="showTab('lws-group')">LWS Groups</button>
           <button class="tab" onclick="showTab('lom')">LOM Updates</button>
-          <button class="tab" id="errors-tab-btn" onclick="showTab('errors')" style="color:#dc2626;font-weight:600">⚠ Errors</button>
+          <button class="tab" id="errors-tab-btn" onclick="showTab('errors')" style="color:#dc2626;font-weight:600">&#x26A0; Errors</button>
           <button class="tab" id="flat-tab-btn" onclick="showTab('flat')" style="display:none">LWS Flat File</button>
           <button class="tab" id="lom-flat-tab-btn" onclick="showTab('lom-flat')" style="display:none">LOM Flat File</button>
         </div>
       </div>
 
+      <!-- Build Review tab -->
       <div id="tab-build">
-        <!-- Filter bar -->
         <div style="padding:10px 16px;border-bottom:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <input type="text" id="build-search"
-            placeholder="Search D#..."
-            oninput="filterBuildTable()"
+          <input type="text" id="build-search" placeholder="Search D#..." oninput="filterBuildTable()"
             style="padding:5px 10px;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);
-                   font-size:12px;background:var(--surface);color:var(--text);outline:none;width:140px;
-                   transition:border-color 0.2s;"
-            onfocus="this.style.borderColor='var(--accent)'"
-            onblur="this.style.borderColor='var(--border)'">
+                   font-size:12px;background:var(--surface);color:var(--text);outline:none;width:140px;"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
           <div style="display:flex;gap:4px;flex-wrap:wrap;">
-            <button class="filter-chip active" data-filter="all"       onclick="setBuildFilter('all')">All</button>
-            <button class="filter-chip"        data-filter="errors"    onclick="setBuildFilter('errors')">Errors only</button>
-            <button class="filter-chip"        data-filter="lws"       onclick="setBuildFilter('lws')">LWS updates</button>
-            <button class="filter-chip"        data-filter="lom"       onclick="setBuildFilter('lom')">LOM updates</button>
-            <button class="filter-chip"        data-filter="na"        onclick="setBuildFilter('na')">N/A replacements</button>
+            <button class="filter-chip active" data-filter="all"    onclick="setBuildFilter('all')">All</button>
+            <button class="filter-chip" data-filter="errors"        onclick="setBuildFilter('errors')">Errors only</button>
+            <button class="filter-chip" data-filter="lws"           onclick="setBuildFilter('lws')">LWS updates</button>
+            <button class="filter-chip" data-filter="lom"           onclick="setBuildFilter('lom')">LOM updates</button>
+            <button class="filter-chip" data-filter="na"            onclick="setBuildFilter('na')">N/A replacements</button>
           </div>
           <span id="build-filter-count" style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-left:auto;"></span>
         </div>
         <div class="table-wrap">
           <table id="build-table">
-            <thead>
-              <tr>
-                <th>Removed D#</th><th>Replace D#</th>
-                <th>Current Epic #</th><th>Current Epic Name</th>
-                <th>Replace Epic #</th><th>Replace Epic Name</th>
-                <th>Curr Trays</th><th>Repl Trays</th>
-                <th>Fewer Trays?</th>
-                <th>LWS Rows</th><th>LOM Rows</th>
-                <th>Build Needed</th><th>Errors</th>
-              </tr>
-            </thead>
+            <thead><tr>
+              <th>Removed D#</th><th>Replace D#</th>
+              <th>Current Epic #</th><th>Current Epic Name</th>
+              <th>Replace Epic #</th><th>Replace Epic Name</th>
+              <th>Curr Trays</th><th>Repl Trays</th><th>Fewer?</th>
+              <th>LWS Rows</th><th>LOM Rows</th><th>Build Needed</th><th>Errors</th>
+            </tr></thead>
             <tbody id="build-tbody"></tbody>
           </table>
         </div>
         <div class="empty-state" id="build-empty">
-          <div class="icon">🖨</div>
+          <div class="icon">&#x1F5A8;</div>
           <h3>No results yet</h3>
           <p>Load your EPR, LWS, and LOM files, paste your printer pairs, then click Generate.</p>
         </div>
       </div>
 
+      <!-- LWS Print Mapping tab -->
       <div id="tab-lws-print" class="hidden">
         <div class="table-wrap">
           <table id="lwsp-table">
-            <thead>
-              <tr>
-                <th>Removed D#</th><th>Replace D#</th>
-                <th>Workstation ID</th><th>Workstation</th><th>WS Identifier</th>
-                <th>Classifications</th><th>Current EPR ID</th><th>Replace EPR ID</th>
-                <th>Mapping Updates</th><th>Count</th>
-                <th>OTG ID</th><th>OTG Name</th><th>Notes</th>
-              </tr>
-            </thead>
+            <thead><tr>
+              <th>Removed D#</th><th>Replace D#</th>
+              <th>Workstation ID</th><th>Workstation</th><th>WS Identifier</th>
+              <th>Classifications</th><th>Current EPR ID</th><th>Replace EPR ID</th>
+              <th>Mapping Updates</th><th>Count</th>
+              <th>OTG ID</th><th>OTG Name</th><th>Notes</th>
+            </tr></thead>
             <tbody id="lwsp-tbody"></tbody>
           </table>
         </div>
         <div class="empty-state" id="lwsp-empty">
-          <div class="icon">📋</div>
-          <h3>No LWS Print Mapping updates</h3>
+          <div class="icon">&#x1F4CB;</div><h3>No LWS Print Mapping updates</h3>
           <p>LWS print mapping impacts will appear here after running the analysis.</p>
         </div>
       </div>
 
+      <!-- LWS Groups tab -->
       <div id="tab-lws-group" class="hidden">
         <div class="table-wrap">
           <table id="lwsg-table">
-            <thead>
-              <tr>
-                <th>Removed D#</th><th>Replace D#</th>
-                <th>Workstation ID</th><th>Workstation</th><th>WS Identifier</th>
-                <th>OTG ID</th><th>OTG Name</th><th>LOM Count</th><th>Notes</th>
-              </tr>
-            </thead>
+            <thead><tr>
+              <th>Removed D#</th><th>Replace D#</th>
+              <th>Workstation ID</th><th>Workstation</th><th>WS Identifier</th>
+              <th>OTG ID</th><th>OTG Name</th><th>LOM Count</th><th>Notes</th>
+            </tr></thead>
             <tbody id="lwsg-tbody"></tbody>
           </table>
         </div>
         <div class="empty-state" id="lwsg-empty">
-          <div class="icon">📂</div>
-          <h3>No LWS Group updates</h3>
+          <div class="icon">&#x1F4C2;</div><h3>No LWS Group updates</h3>
           <p>LWS group impacts will appear here after running the analysis.</p>
         </div>
       </div>
 
+      <!-- LOM Updates tab — one row per LOM ID -->
       <div id="tab-lom" class="hidden">
         <div class="table-wrap">
           <table id="lom-table">
-            <thead>
-              <tr>
-                <th>LOM ID</th><th>LOM Name</th><th>Name Match?</th>
-                <th>Dest WS ID</th>
-                <th>Line</th><th>Current WS Name</th><th>Replacement WS Name</th>
-                <th>Tray</th><th>OTG Link</th><th>Notes</th>
-              </tr>
-            </thead>
+            <thead><tr>
+              <th>.1 LOM ID</th><th>.2 LOM Name</th>
+              <th>100 Dest Descriptor</th><th>.100 Dest Descriptor Name</th>
+              <th>110 Dest WS ID</th>
+              <th>.110 Current WS Names</th><th>.110 Replacement WS Names</th>
+              <th>280 OTG Link</th><th>Name Match?</th><th>Notes</th>
+            </tr></thead>
             <tbody id="lom-tbody"></tbody>
           </table>
         </div>
         <div class="empty-state" id="lom-empty">
-          <div class="icon">📬</div>
-          <h3>No LOM updates</h3>
+          <div class="icon">&#x1F4EC;</div><h3>No LOM updates</h3>
           <p>LOM impacts will appear here after running the analysis.</p>
         </div>
       </div>
 
-
+      <!-- Errors tab -->
       <div id="tab-errors" class="hidden">
         <div id="errors-banner" style="padding:12px 18px;background:#fef2f2;border-bottom:1px solid #fecaca;display:flex;align-items:center;gap:8px;">
           <span id="errors-summary" style="color:#dc2626;font-size:13px;font-weight:600"></span>
         </div>
         <div class="table-wrap">
           <table id="errors-table">
-            <thead>
-              <tr>
-                <th>Severity</th>
-                <th>Pair</th>
-                <th>Root Cause</th>
-                <th>Action Required</th>
-              </tr>
-            </thead>
+            <thead><tr>
+              <th>Severity</th><th>Pair</th><th>Root Cause</th><th>Action Required</th>
+            </tr></thead>
             <tbody id="errors-tbody"></tbody>
           </table>
         </div>
         <div class="empty-state" id="errors-empty">
-          <div class="icon">✅</div>
-          <h3>No errors found</h3>
-          <p>All printer pairs processed cleanly. No issues to address.</p>
+          <div class="icon">&#x2705;</div><h3>No errors found</h3>
+          <p>All printer pairs processed cleanly.</p>
         </div>
       </div>
 
-
+      <!-- LWS Flat File preview tab -->
       <div id="tab-flat" class="hidden">
         <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
           <div style="display:flex;align-items:center;gap:10px;">
@@ -743,21 +446,18 @@
             <span id="flat-record-count" style="font-family:var(--mono);font-size:11px;color:var(--muted)"></span>
           </div>
           <div style="display:flex;gap:8px;">
-            <button class="btn btn-secondary" onclick="copyFlatFile()" style="font-size:12px;padding:6px 12px">📋 Copy to Clipboard</button>
-            <button class="btn btn-primary" onclick="downloadFlat()" style="font-size:12px;padding:6px 12px">⬇ Download</button>
+            <button class="btn btn-secondary" onclick="copyFlatFile()" style="font-size:12px;padding:6px 12px">&#x1F4CB; Copy</button>
+            <button class="btn btn-primary" onclick="downloadFlat()" style="font-size:12px;padding:6px 12px">&#x2B07; Download</button>
           </div>
         </div>
-        <div style="overflow-x:auto;max-height:500px;overflow-y:auto;">
-          <div id="flat-preview" style="padding:0;"></div>
-        </div>
+        <div style="overflow-x:auto;max-height:500px;overflow-y:auto;"><div id="flat-preview"></div></div>
         <div class="empty-state" id="flat-empty">
-          <div class="icon">📄</div>
-          <h3>No flat file generated</h3>
+          <div class="icon">&#x1F4C4;</div><h3>No flat file generated</h3>
           <p>Enable "Generate LWS import flat file" in options and run the analysis.</p>
         </div>
       </div>
 
-
+      <!-- LOM Flat File preview tab -->
       <div id="tab-lom-flat" class="hidden">
         <div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
           <div style="display:flex;align-items:center;gap:10px;">
@@ -765,214 +465,215 @@
             <span id="lom-flat-record-count" style="font-family:var(--mono);font-size:11px;color:var(--muted)"></span>
           </div>
           <div style="display:flex;gap:8px;">
-            <button class="btn btn-secondary" onclick="copyLomFlatFile()" style="font-size:12px;padding:6px 12px">📋 Copy to Clipboard</button>
-            <button class="btn btn-primary" onclick="downloadLomFlat()" style="font-size:12px;padding:6px 12px">⬇ Download</button>
+            <button class="btn btn-secondary" onclick="copyLomFlatFile()" style="font-size:12px;padding:6px 12px">&#x1F4CB; Copy</button>
+            <button class="btn btn-primary" onclick="downloadLomFlat()" style="font-size:12px;padding:6px 12px">&#x2B07; Download</button>
           </div>
         </div>
-        <div style="overflow-x:auto;max-height:500px;overflow-y:auto;">
-          <div id="lom-flat-preview" style="padding:0;"></div>
-        </div>
+        <div style="overflow-x:auto;max-height:500px;overflow-y:auto;"><div id="lom-flat-preview"></div></div>
         <div class="empty-state" id="lom-flat-empty">
-          <div class="icon">📄</div>
-          <h3>No LOM flat file generated</h3>
+          <div class="icon">&#x1F4C4;</div><h3>No LOM flat file generated</h3>
           <p>Enable "Generate LOM import flat file" in options and run the analysis.</p>
         </div>
       </div>
 
       <div class="source-info" id="source-info" style="display:none">
-        EPR: <span id="si-epr">—</span>
-        LWS: <span id="si-lws">—</span>
-        LOM: <span id="si-lom">—</span>
-        EUTS: <span id="si-euts">—</span>
+        EPR: <span id="si-epr">--</span>
+        LWS: <span id="si-lws">--</span>
+        LOM: <span id="si-lom">--</span>
+        EUTS: <span id="si-euts">--</span>
       </div>
     </div>
   </main>
 </div>
 
 <script>
-// ─── State ────────────────────────────────────────────────────────────────────
-const state = {
+// Version: 2.0
+var APP_VERSION = '3.0';
+
+// State
+var state = {
   eprData: null, lwsData: null, lomData: null, eutsData: null,
   eprName: '', lwsName: '', lomName: '', eutsName: '',
   results: [], lwsImpacts: {}, lomImpacts: {}, stats: {},
-  flatLines: [], activeTab: 'build'
+  flatContent: null, lomFlatContent: null,
+  lwsWorkstationIndex: {}, eutsMap: {}, eprByD: {},
+  activeTab: 'build'
 };
 
-// ─── File loading ─────────────────────────────────────────────────────────────
-function setupFileInput(inputId, dropId, nameId, stateKey, nameKey, isXml) {
-  const inp = document.getElementById(inputId);
-  const drop = document.getElementById(dropId);
-  const nameEl = document.getElementById(nameId);
-
-  inp.addEventListener('change', async () => {
-    const file = inp.files[0];
+// File loading
+function setupFileInput(inputId, dropId, nameId, stateKey, nameKey) {
+  var inp = document.getElementById(inputId);
+  var drop = document.getElementById(dropId);
+  var nameEl = document.getElementById(nameId);
+  inp.addEventListener('change', function() {
+    var file = inp.files[0];
     if (!file) return;
-    setStatus('loading', `Loading ${file.name}…`);
-    try {
-      if (isXml || file.name.toLowerCase().endsWith('.xml')) {
-        const text = await file.text();
-        state[stateKey] = parseSpreadsheetML(text);
-      } else {
-        const buf = await file.arrayBuffer();
-        const wb = XLSX.read(buf, { type: 'array' });
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        state[stateKey] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
-      }
-      state[nameKey] = file.name;
-      nameEl.textContent = file.name;
-      nameEl.classList.remove('placeholder');
-      drop.classList.add('loaded');
-      setStatus('idle', `Loaded: ${file.name}`);
-    } catch(e) {
-      setStatus('error', `Error loading ${file.name}: ${e.message}`);
+    setStatus('loading', 'Loading ' + file.name + '...');
+    var isXml = file.name.toLowerCase().endsWith('.xml');
+    if (isXml) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          state[stateKey] = parseSpreadsheetML(e.target.result);
+          state[nameKey] = file.name;
+          nameEl.textContent = file.name;
+          nameEl.classList.remove('placeholder');
+          drop.classList.add('loaded');
+          setStatus('idle', 'Loaded: ' + file.name + ' (' + state[stateKey].length + ' rows)');
+        } catch(err) {
+          setStatus('error', 'Error loading ' + file.name + ': ' + err.message);
+        }
+      };
+      reader.onerror = function() { setStatus('error', 'Could not read ' + file.name); };
+      reader.readAsText(file);
+    } else {
+      var reader2 = new FileReader();
+      reader2.onload = function(e) {
+        try {
+          var wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+          var ws = wb.Sheets[wb.SheetNames[0]];
+          state[stateKey] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+          state[nameKey] = file.name;
+          nameEl.textContent = file.name;
+          nameEl.classList.remove('placeholder');
+          drop.classList.add('loaded');
+          setStatus('idle', 'Loaded: ' + file.name + ' (' + state[stateKey].length + ' rows)');
+        } catch(err) {
+          setStatus('error', 'Error loading ' + file.name + ': ' + err.message);
+        }
+      };
+      reader2.onerror = function() { setStatus('error', 'Could not read ' + file.name); };
+      reader2.readAsArrayBuffer(file);
     }
   });
 }
 
-setupFileInput('epr-file','epr-drop','epr-name','eprData','eprName', true);
-setupFileInput('lws-file','lws-drop','lws-name','lwsData','lwsName', true);
-setupFileInput('lom-file','lom-drop','lom-name','lomData','lomName', true);
-setupFileInput('euts-file','euts-drop','euts-name','eutsData','eutsName', false);
+setupFileInput('epr-file','epr-drop','epr-name','eprData','eprName');
+setupFileInput('lws-file','lws-drop','lws-name','lwsData','lwsName');
+setupFileInput('lom-file','lom-drop','lom-name','lomData','lomName');
+setupFileInput('euts-file','euts-drop','euts-name','eutsData','eutsName');
 
-// ─── SpreadsheetML XML parser ─────────────────────────────────────────────────
+// SpreadsheetML XML parser
 function parseSpreadsheetML(xmlText) {
-  const NS = 'urn:schemas-microsoft-com:office:spreadsheet';
-  let rows = [];
+  var NS = 'urn:schemas-microsoft-com:office:spreadsheet';
+  var rows = [];
   try {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(xmlText, 'text/xml');
-    const rowEls = doc.getElementsByTagNameNS(NS, 'Row');
-    for (const rowEl of rowEls) {
-      const cells = rowEl.getElementsByTagNameNS(NS, 'Cell');
-      const values = [];
-      let currentIdx = 1;
-      for (const cell of cells) {
-        const idxAttr = cell.getAttributeNS(NS, 'Index');
+    var parser = new DOMParser();
+    var doc = parser.parseFromString(xmlText, 'text/xml');
+    var rowEls = doc.getElementsByTagNameNS(NS, 'Row');
+    for (var ri = 0; ri < rowEls.length; ri++) {
+      var rowEl = rowEls[ri];
+      var cells = rowEl.getElementsByTagNameNS(NS, 'Cell');
+      var values = [];
+      var currentIdx = 1;
+      for (var ci = 0; ci < cells.length; ci++) {
+        var cell = cells[ci];
+        var idxAttr = cell.getAttributeNS(NS, 'Index');
         if (idxAttr) {
-          const target = parseInt(idxAttr);
+          var target = parseInt(idxAttr);
           while (currentIdx < target) { values.push(''); currentIdx++; }
         }
-        const data = cell.getElementsByTagNameNS(NS, 'Data')[0];
+        var data = cell.getElementsByTagNameNS(NS, 'Data')[0];
         values.push(data ? (data.textContent || '') : '');
         currentIdx++;
       }
       rows.push(values);
     }
-  } catch(e) {
-    console.error('XML parse error', e);
-  }
+  } catch(e) { console.error('XML parse error', e); }
   return rows;
 }
 
-// ─── Utility functions ────────────────────────────────────────────────────────
-const TRAY_PATH_RE = /(?:\/|\\)tray\s*(\d+)/i;
+// Utility
+var TRAY_PATH_RE = /(?:\/|\\)tray\s*(\d+)/i;
 
 function normalizeD(val) {
   if (!val) return null;
-  const m = (val + '').toUpperCase().match(/D\d{5}/);
+  var m = (val + '').toUpperCase().match(/D\d{5}/);
   return m ? m[0] : null;
 }
 
-// ─── Tray extraction ──────────────────────────────────────────────────────────
-// Tray keys: 'WB', 'LBL', 'T1', 'T2', 'T3', 'T4', 'T5', 'PLAIN' (no suffix)
-// Priority: WB > LBL > T1 > T2/T3/T4/T5 > PLAIN
-//
-// Strict types (no fallback on replacement): WB, LBL, T1
-// Plain paper types cascade: T5→T4→T3→T2→PLAIN
-// No suffix on removed → can match PLAIN or T2+
-
+// Tray extraction
+// WB: wristband — suffix -WB or -WRSBND (interchangeable)
+// LBL: label tray
+// T1: RX/label tray
+// T2-T5: plain paper (cascade)
+// PLAIN: no suffix
 function extractTrayKey(val) {
   if (!val) return null;
-  const upper = val.toUpperCase();
 
-  // After the D##### in the device name, look for known suffixes
-  // Match suffix after D##### with optional separators
-  const suffixMatch = upper.match(/D\d{5}[-_]?([A-Z0-9]+)?(?:[-_]([A-Z0-9]+))?/);
-
-  // Check for WB (wristband) — highest priority
+  // WB / WRSBND — wristband (check before generic suffix matching)
   if (/-WB\b/i.test(val) || /\bWB\b/i.test(val)) return 'WB';
+  if (/-WRSBND\b/i.test(val) || /\bWRSBND\b/i.test(val)) return 'WB';
+  if (/-WRSBN\b/i.test(val) || /\bWRSBN\b/i.test(val)) return 'WB';
 
-  // Check for LBL (label)
+  // LBL — label
   if (/-LBL\b/i.test(val) || /\bLBL\b/i.test(val)) return 'LBL';
 
-  // Check for explicit T# suffix after D#####
-  // Matches: -T1, _T1, T1 at end, -T2, etc.
-  const tSuffix = val.match(/[-_]T(\d+)(?:\b|$)/i) || val.match(/\bT(\d+)(?:\b|$)/i);
+  // T# suffix — explicit tray number
+  var tSuffix = val.match(/[-_]T(\d+)(?:\b|$)/i) || val.match(/\bT(\d+)(?:\b|$)/i);
   if (tSuffix) return 'T' + parseInt(tSuffix[1]);
 
-  // Check path-style tray (e.g. /tray2)
-  const pathMatch = TRAY_PATH_RE.exec(val);
+  // Path-style tray
+  var pathMatch = TRAY_PATH_RE.exec(val);
   if (pathMatch) return 'T' + parseInt(pathMatch[1]);
 
-  // No recognized tray suffix → plain paper
+  // No recognized suffix = plain paper
   return 'PLAIN';
 }
 
-// Given a removed tray key, return ordered list of tray keys to try on replacement
+// Fallback chain for replacement matching
 function trayFallbackChain(trayKey) {
-  // Strict types — no fallback
-  if (trayKey === 'WB') return ['WB'];
-  if (trayKey === 'LBL') return ['LBL'];
-  if (trayKey === 'T1') return ['T1'];
-  // Plain paper cascade
-  if (trayKey === 'T5') return ['T5', 'T4', 'T3', 'T2', 'PLAIN'];
-  if (trayKey === 'T4') return ['T4', 'T3', 'T2', 'PLAIN'];
-  if (trayKey === 'T3') return ['T3', 'T2', 'PLAIN'];
-  if (trayKey === 'T2') return ['T2', 'PLAIN'];
-  if (trayKey === 'PLAIN') return ['PLAIN', 'T2'];
-  // Unknown — try exact only
+  if (trayKey === 'WB')    return ['WB'];
+  if (trayKey === 'LBL')   return ['LBL'];
+  if (trayKey === 'T1')    return ['T1'];
+  if (trayKey === 'T5')    return ['T5','T4','T3','T2','PLAIN'];
+  if (trayKey === 'T4')    return ['T4','T3','T2','PLAIN'];
+  if (trayKey === 'T3')    return ['T3','T2','PLAIN'];
+  if (trayKey === 'T2')    return ['T2','PLAIN'];
+  if (trayKey === 'PLAIN') return ['PLAIN','T2'];
   return [trayKey];
 }
 
-// Returns true if this tray type requires an exact match (no fallback allowed)
 function isStrictTray(trayKey) {
   return trayKey === 'WB' || trayKey === 'LBL' || trayKey === 'T1';
 }
 
-// Find best replacement record for a given removed tray key
 function findReplacementRecord(replMap, removedTrayKey) {
-  const chain = trayFallbackChain(removedTrayKey);
-  for (const key of chain) {
-    if (replMap[key]) return { record: replMap[key], matchedKey: key, exact: key === removedTrayKey };
+  var chain = trayFallbackChain(removedTrayKey);
+  for (var i = 0; i < chain.length; i++) {
+    if (replMap[chain[i]]) return { record: replMap[chain[i]], matchedKey: chain[i], exact: chain[i] === removedTrayKey };
   }
   return null;
 }
 
 function splitLines(val) {
   if (!val) return [];
-  return val.split('\n').map(s => s.trim());
+  return val.split('\n').map(function(s) { return s.trim(); });
 }
 
-function getRows(data, skipRows = 5) {
-  return data ? data.slice(skipRows) : [];
+function getRows(data, skipRows) {
+  if (!data) return [];
+  return data.slice(skipRows || 5);
 }
 
-// ─── Parse LWS workstation index ─────────────────────────────────────────────
-// Builds a map: { D#: { trayKey: workstationNumericId } }
-// Used by LOM flat file to look up replacement workstation IDs by tray
+// Parse LWS workstation index for LOM flat file
 function parseLwsWorkstationIndex(data) {
-  const index = {}; // { dNumber: { trayKey: workstationId } }
-  const rows = getRows(data, 5);
-  for (const rawRow of rows) {
-    const row = [...rawRow];
+  var index = {};
+  var rows = getRows(data, 5);
+  for (var i = 0; i < rows.length; i++) {
+    var row = rows[i].slice();
     while (row.length < 13) row.push('');
-    const workstationId   = (row[0]||'').trim();
-    const workstation     = (row[1]||'').trim();
-    const wsIdentifier    = (row[2]||'').trim();
+    var workstationId = (row[0]||'').trim();
+    var workstation   = (row[1]||'').trim();
+    var wsIdentifier  = (row[2]||'').trim();
     if (!workstationId) continue;
-
-    // Skip rows that have printer classification data (those are print mapping rows)
-    const hasClassData = [5,6,7,8].some(i => (row[i]||'').trim());
+    var hasClassData = [5,6,7,8].some(function(idx) { return (row[idx]||'').trim(); });
     if (hasClassData) continue;
-
-    const dNum = normalizeD(`${workstation} ${wsIdentifier}`);
+    var dNum = normalizeD(workstation + ' ' + wsIdentifier);
     if (!dNum) continue;
-
-    const tray = extractTrayKey(workstation) || extractTrayKey(wsIdentifier) || 'PLAIN';
+    var tray = extractTrayKey(workstation) || extractTrayKey(wsIdentifier) || 'PLAIN';
     if (!index[dNum]) index[dNum] = {};
     index[dNum][tray] = workstationId;
-
-    // If only one entry and not T1, also register as PLAIN fallback
     if (Object.keys(index[dNum]).length === 1 && tray !== 'PLAIN') {
       index[dNum]['PLAIN'] = index[dNum]['PLAIN'] || workstationId;
     }
@@ -980,42 +681,46 @@ function parseLwsWorkstationIndex(data) {
   return index;
 }
 
-// ─── Parse pairs ──────────────────────────────────────────────────────────────
+// Parse pairs
 function parsePairs(text) {
-  const pairs = [], seen = new Set();
-  for (const rawLine of text.split('\n')) {
-    const line = rawLine.trim();
+  var pairs = [], seen = {};
+  var lines = text.split('\n');
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].trim();
     if (!line) continue;
-    let parts;
-    if (line.includes('\t')) parts = line.split('\t').map(s => s.trim());
-    else if (line.includes(',')) parts = line.split(',').map(s => s.trim());
-    else parts = line.split(/\s+/).map(s => s.trim());
+    var parts;
+    if (line.indexOf('\t') >= 0) parts = line.split('\t').map(function(s){return s.trim();});
+    else if (line.indexOf(',') >= 0) parts = line.split(',').map(function(s){return s.trim();});
+    else parts = line.split(/\s+/).map(function(s){return s.trim();});
     parts = parts.filter(Boolean);
     if (parts.length < 2) continue;
-    const removed = normalizeD(parts[0]);
-    const replRaw = (parts[1] || '').trim();
-    let replacement = normalizeD(replRaw);
+    var removed = normalizeD(parts[0]);
+    var replRaw = (parts[1]||'').trim();
+    var replacement = normalizeD(replRaw);
     if (replRaw.toUpperCase() === 'N/A') replacement = 'N/A';
     if (removed && replacement) {
-      const key = removed + '|' + replacement;
-      if (!seen.has(key)) { seen.add(key); pairs.push([removed, replacement]); }
+      var key = removed + '|' + replacement;
+      if (!seen[key]) { seen[key] = true; pairs.push([removed, replacement]); }
     }
   }
   return pairs;
 }
 
-// ─── Parse EPR ────────────────────────────────────────────────────────────────
+// Parse EPR
+var TRAY_ORDER = { 'WB':0,'LBL':1,'T1':2,'T2':3,'T3':4,'T4':5,'T5':6,'PLAIN':7 };
+
 function parseEpr(data) {
-  const byD = {};
-  const rows = getRows(data, 5);
-  for (const row of rows) {
+  var byD = {};
+  var rows = getRows(data, 5);
+  for (var i = 0; i < rows.length; i++) {
+    var row = rows[i].slice();
     while (row.length < 3) row.push('');
-    const [deviceId, deviceName, printerPath] = row;
+    var deviceId = row[0], deviceName = row[1], printerPath = row[2];
     if (!deviceId && !deviceName && !printerPath) continue;
-    const dNum = normalizeD(`${deviceName} ${printerPath} ${deviceId}`);
-    const deleted = /DEL/i.test(deviceName || '');
-    const tray = extractTrayKey(deviceName) || extractTrayKey(printerPath) || 'PLAIN';
-    const rec = { deviceId: (deviceId||'').trim(), deviceName: (deviceName||'').trim(), printerPath: (printerPath||'').trim(), dNumber: dNum, trayKey: tray, deleted };
+    var dNum = normalizeD(deviceName + ' ' + printerPath + ' ' + deviceId);
+    var deleted = /DEL/i.test(deviceName||'');
+    var tray = extractTrayKey(deviceName) || extractTrayKey(printerPath) || 'PLAIN';
+    var rec = { deviceId:(deviceId||'').trim(), deviceName:(deviceName||'').trim(), printerPath:(printerPath||'').trim(), dNumber:dNum, trayKey:tray, deleted:deleted };
     if (dNum && !deleted) {
       if (!byD[dNum]) byD[dNum] = [];
       byD[dNum].push(rec);
@@ -1024,141 +729,145 @@ function parseEpr(data) {
   return byD;
 }
 
-const TRAY_ORDER = { 'WB': 0, 'LBL': 1, 'T1': 2, 'T2': 3, 'T3': 4, 'T4': 5, 'T5': 6, 'PLAIN': 7 };
 function traySort(a, b) {
-  const oa = TRAY_ORDER[a.trayKey] ?? 99;
-  const ob = TRAY_ORDER[b.trayKey] ?? 99;
+  var oa = (TRAY_ORDER[a.trayKey] !== undefined) ? TRAY_ORDER[a.trayKey] : 99;
+  var ob = (TRAY_ORDER[b.trayKey] !== undefined) ? TRAY_ORDER[b.trayKey] : 99;
   return oa - ob || a.deviceId.localeCompare(b.deviceId);
 }
 
 function summarizeEpr(records) {
-  if (!records || !records.length) return { numbers: '', names: '', trays: 0, count: 0 };
-  const ordered = [...records].sort(traySort);
+  if (!records || !records.length) return { numbers:'', names:'', trays:0, count:0 };
+  var ordered = records.slice().sort(traySort);
   return {
-    numbers: ordered.map(r => r.deviceId).join('\n'),
-    names: ordered.map(r => `${r.deviceName} [${r.trayKey}]`).join('\n'),
-    trays: new Set(ordered.map(r => r.trayKey)).size,
-    count: ordered.length
+    numbers: ordered.map(function(r){return r.deviceId;}).join('\n'),
+    names:   ordered.map(function(r){return r.deviceName + ' [' + r.trayKey + ']';}).join('\n'),
+    trays:   (function(){ var s={}; ordered.forEach(function(r){s[r.trayKey]=1;}); return Object.keys(s).length; })(),
+    count:   ordered.length
   };
 }
 
 function getEprRecordMap(records) {
-  const map = {};
-  for (const r of (records || [])) map[r.trayKey] = r;
+  var map = {};
+  (records||[]).forEach(function(r){ map[r.trayKey] = r; });
   return map;
 }
 
-// ─── Parse EUTS ───────────────────────────────────────────────────────────────
+// Parse EUTS
 function parseEuts(data) {
-  const out = {};
+  var out = {};
   if (!data || data.length < 2) return out;
-  const headers = (data[0] || []).map(h => (h+'').trim());
-  const hm = {};
-  headers.forEach((h, i) => hm[h] = i);
-  const required = ['DNumber','Building','Floor','Department','Room'];
-  for (const h of required) if (!(h in hm)) return out; // missing cols, skip
-  for (let i = 1; i < data.length; i++) {
-    const row = data[i] || [];
-    const d = normalizeD((row[hm['DNumber']]||'').toString());
+  var headers = (data[0]||[]).map(function(h){return (h+'').trim();});
+  var hm = {};
+  headers.forEach(function(h,i){hm[h]=i;});
+  var required = ['DNumber','Building','Floor','Department','Room'];
+  for (var ri = 0; ri < required.length; ri++) { if (!(required[ri] in hm)) return out; }
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i]||[];
+    var d = normalizeD((row[hm['DNumber']]||'').toString());
     if (!d) continue;
     out[d] = {
-      Building: (row[hm['Building']]||'').toString().trim(),
-      Floor: (row[hm['Floor']]||'').toString().trim(),
+      Building:   (row[hm['Building']]||'').toString().trim(),
+      Floor:      (row[hm['Floor']]||'').toString().trim(),
       Department: (row[hm['Department']]||'').toString().trim(),
-      Room: (row[hm['Room']]||'').toString().trim(),
+      Room:       (row[hm['Room']]||'').toString().trim()
     };
   }
   return out;
 }
 
 function eutsVals(eutsMap, d) {
-  const v = eutsMap[d] || {};
+  var v = eutsMap[d]||{};
   return [v.Building||'', v.Floor||'', v.Department||'', v.Room||''];
 }
 
-// ─── Parse LWS impacts ────────────────────────────────────────────────────────
+// Parse LWS impacts
 function parseLwsImpacts(data, pairs, eprByD) {
-  const pairMap = Object.fromEntries(pairs);
-  const targets = new Set(pairs.map(p => p[0]));
-  const impacts = {};
-  targets.forEach(d => impacts[d] = { workstationIds: new Set(), otgIds: new Set(), otgNames: new Set(), printMappingUpdates: [], printFlatRecords: [], groupUpdates: [] });
+  var pairMap = {};
+  pairs.forEach(function(p){ pairMap[p[0]] = p[1]; });
+  var targets = {};
+  pairs.forEach(function(p){ targets[p[0]] = true; });
+  var impacts = {};
+  Object.keys(targets).forEach(function(d){
+    impacts[d] = { workstationIds:{}, otgIds:{}, otgNames:{}, printMappingUpdates:[], printFlatRecords:[], groupUpdates:[] };
+  });
 
-  const replacementMaps = {};
-  for (const [removed, repl] of pairs) {
-    if (repl !== 'N/A' && !replacementMaps[repl]) replacementMaps[repl] = getEprRecordMap(eprByD[repl] || []);
-  }
-  const removedMaps = {};
-  targets.forEach(d => removedMaps[d] = getEprRecordMap(eprByD[d] || []));
+  var replacementMaps = {};
+  pairs.forEach(function(p){
+    if (p[1] !== 'N/A' && !replacementMaps[p[1]]) replacementMaps[p[1]] = getEprRecordMap(eprByD[p[1]]||[]);
+  });
+  var removedMaps = {};
+  Object.keys(targets).forEach(function(d){ removedMaps[d] = getEprRecordMap(eprByD[d]||[]); });
 
-  const rows = getRows(data, 5);
-  rows.forEach((rawRow, rowNum) => {
-    const row = [...rawRow];
+  var rows = getRows(data, 5);
+  rows.forEach(function(rawRow, rowNum) {
+    var row = rawRow.slice();
     while (row.length < 13) row.push('');
-    const workstationId = (row[0]||'').trim() || `ROW_${rowNum+6}`;
-    const workstation = (row[1]||'').trim();
-    const workstationIdentifier = (row[2]||'').trim();
-    const otgId = (row[3]||'').trim();
-    const otgName = (row[4]||'').trim();
+    var workstationId = (row[0]||'').trim() || ('ROW_'+(rowNum+6));
+    var workstation = (row[1]||'').trim();
+    var workstationIdentifier = (row[2]||'').trim();
+    var otgId = (row[3]||'').trim();
+    var otgName = (row[4]||'').trim();
 
-    const classLines = splitLines(row[5]||'');
-    const remoteIdLines = splitLines(row[7]||'');
-    const remoteNameLines = splitLines(row[8]||'');
-    const configLines = splitLines(row[9]||'');
-    const promptLines = splitLines(row[11]||'');
-    const optionLines = splitLines(row[12]||'');
+    var classLines = splitLines(row[5]||'');
+    var remoteIdLines = splitLines(row[7]||'');
+    var remoteNameLines = splitLines(row[8]||'');
+    var configLines = splitLines(row[9]||'');
+    var promptLines = splitLines(row[11]||'');
+    var optionLines = splitLines(row[12]||'');
 
-    const lineCount = Math.max(classLines.length, remoteIdLines.length, remoteNameLines.length, configLines.length, promptLines.length, optionLines.length, 1);
-    const pad = (arr) => { while (arr.length < lineCount) arr.push(''); return arr; };
+    var lineCount = Math.max(classLines.length, remoteIdLines.length, remoteNameLines.length, configLines.length, promptLines.length, optionLines.length, 1);
+    function pad(arr){ while(arr.length<lineCount) arr.push(''); return arr; }
     pad(classLines); pad(remoteIdLines); pad(remoteNameLines); pad(configLines); pad(promptLines); pad(optionLines);
 
-    const wsUpdates = {}, wsClasses = {}, wsCurrentIds = {}, wsReplIds = {}, wsNotes = {};
-    const flatByRemoved = {};
-    const affectedForGroup = new Set();
+    var wsUpdates={}, wsClasses={}, wsCurrentIds={}, wsReplIds={}, wsNotes={};
+    var flatByRemoved={};
+    var affectedForGroup={};
 
-    for (let i = 0; i < lineCount; i++) {
-      const removedD = normalizeD(`${remoteIdLines[i]} ${remoteNameLines[i]}`);
-      if (!removedD || !targets.has(removedD)) continue;
+    for (var i = 0; i < lineCount; i++) {
+      var removedD = normalizeD((remoteIdLines[i]||'') + ' ' + (remoteNameLines[i]||''));
+      if (!removedD || !targets[removedD]) continue;
 
-      impacts[removedD].workstationIds.add(workstationId);
-      const oldTray = extractTrayKey(remoteNameLines[i]) || extractTrayKey(classLines[i]) || 'PLAIN';
-      const replacementD = pairMap[removedD];
-      const oldRecord = removedMaps[removedD]?.[oldTray];
-      const replLookup = findReplacementRecord(replacementMaps[replacementD] || {}, oldTray);
-      const replRecord = replLookup ? replLookup.record : null;
-      const trayMissing = replacementD !== 'N/A' && !replRecord;
-      const sourceName = remoteNameLines[i] || remoteIdLines[i];
+      impacts[removedD].workstationIds[workstationId] = true;
+      var oldTray = extractTrayKey(remoteNameLines[i]) || extractTrayKey(classLines[i]) || 'PLAIN';
+      var replacementD = pairMap[removedD];
+      var oldRecord = removedMaps[removedD] ? removedMaps[removedD][oldTray] : null;
+      var replLookup = findReplacementRecord(replacementMaps[replacementD]||{}, oldTray);
+      var replRecord = replLookup ? replLookup.record : null;
+      var sourceName = remoteNameLines[i] || remoteIdLines[i];
 
-      if (!wsCurrentIds[removedD]) wsCurrentIds[removedD] = [];
-      if (!wsReplIds[removedD]) wsReplIds[removedD] = [];
-      if (!wsUpdates[removedD]) wsUpdates[removedD] = [];
-      if (!wsClasses[removedD]) wsClasses[removedD] = [];
-      if (!wsNotes[removedD]) wsNotes[removedD] = [];
+      if (!wsCurrentIds[removedD]) wsCurrentIds[removedD]=[];
+      if (!wsReplIds[removedD])    wsReplIds[removedD]=[];
+      if (!wsUpdates[removedD])    wsUpdates[removedD]=[];
+      if (!wsClasses[removedD])    wsClasses[removedD]=[];
+      if (!wsNotes[removedD])      wsNotes[removedD]=[];
 
       wsCurrentIds[removedD].push(oldRecord ? oldRecord.deviceId : '');
       wsReplIds[removedD].push(replRecord ? replRecord.deviceId : '');
 
-      if (replacementD === 'N/A') wsUpdates[removedD].push(`${sourceName} → [BLANK]`);
-      else if (replRecord) wsUpdates[removedD].push(`${sourceName} → ${replRecord.deviceName || replRecord.deviceId}`);
-      else {
-        wsUpdates[removedD].push(`${sourceName} → [MISSING - Need new EPR]`);
-        const strictMsg = isStrictTray(oldTray)
-          ? `Tray type ${oldTray} (${oldTray==='WB'?'Wristband':oldTray==='LBL'?'Label':'RX/Label'}) not found on replacement — must create new EPR`
-          : `No plain paper tray found on replacement for ${oldTray}`;
+      if (replacementD === 'N/A') {
+        wsUpdates[removedD].push(sourceName + ' -> [BLANK]');
+      } else if (replRecord) {
+        wsUpdates[removedD].push(sourceName + ' -> ' + (replRecord.deviceName || replRecord.deviceId));
+      } else {
+        wsUpdates[removedD].push(sourceName + ' -> [MISSING - Need new EPR]');
+        var strictMsg = isStrictTray(oldTray)
+          ? 'Tray type ' + oldTray + ' (' + (oldTray==='WB'?'Wristband':oldTray==='LBL'?'Label':'RX/Label') + ') not found on replacement -- must create new EPR'
+          : 'No plain paper tray found on replacement for ' + oldTray;
         wsNotes[removedD].push(strictMsg);
       }
 
-      const cls = (classLines[i]||'').trim();
+      var cls = (classLines[i]||'').trim();
       if (cls) wsClasses[removedD].push(cls);
 
-      const otgD = normalizeD(`${otgId} ${otgName}`);
+      var otgD = normalizeD((otgId||'') + ' ' + (otgName||''));
       if (otgId && otgId !== '1999' && otgD === removedD) {
-        impacts[removedD].otgIds.add(otgId);
-        if (otgName) impacts[removedD].otgNames.add(otgName);
-        affectedForGroup.add(removedD);
+        impacts[removedD].otgIds[otgId] = true;
+        if (otgName) impacts[removedD].otgNames[otgName] = true;
+        affectedForGroup[removedD] = true;
       }
 
       if (!flatByRemoved[removedD]) {
-        flatByRemoved[removedD] = { workstationId, workstationIdentifier, otgId, classifications: [], remoteDeviceIds: [], deviceConfigIds: [], printPrompts: [], printOptions: [] };
+        flatByRemoved[removedD] = { workstationId:workstationId, workstationIdentifier:workstationIdentifier, otgId:otgId, classifications:[], remoteDeviceIds:[], deviceConfigIds:[], printPrompts:[], printOptions:[] };
       }
       flatByRemoved[removedD].classifications.push(classLines[i]);
       flatByRemoved[removedD].remoteDeviceIds.push(replRecord ? replRecord.deviceId : '');
@@ -1167,614 +876,519 @@ function parseLwsImpacts(data, pairs, eprByD) {
       flatByRemoved[removedD].printOptions.push(optionLines[i]);
     }
 
-    for (const removedD of Object.keys(wsUpdates)) {
-      const classText = [...new Set(wsClasses[removedD].filter(Boolean))].join('\n');
-      const noteText = [...new Set(wsNotes[removedD].filter(Boolean))].join('; ');
+    Object.keys(wsUpdates).forEach(function(removedD) {
+      var seen1={}, seen2={};
+      var classText = wsClasses[removedD].filter(function(c){if(!c||seen1[c])return false;seen1[c]=true;return true;}).join('\n');
+      var noteText  = wsNotes[removedD].filter(function(n){if(!n||seen2[n])return false;seen2[n]=true;return true;}).join('; ');
       impacts[removedD].printMappingUpdates.push({
-        removedD, replacementD: pairMap[removedD], workstationId, workstation, workstationIdentifier,
-        printerClassificationsText: classText,
-        currentEprIdsText: wsCurrentIds[removedD].join('\n'),
-        replacementEprIdsText: wsReplIds[removedD].join('\n'),
-        printerUpdatesText: wsUpdates[removedD].join('\n'),
-        mappingCount: wsUpdates[removedD].length,
-        currentOtgId: otgId, currentOtgName: otgName, notes: noteText,
+        removedD:removedD, replacementD:pairMap[removedD], workstationId:workstationId,
+        workstation:workstation, workstationIdentifier:workstationIdentifier,
+        printerClassificationsText:classText,
+        currentEprIdsText:wsCurrentIds[removedD].join('\n'),
+        replacementEprIdsText:wsReplIds[removedD].join('\n'),
+        printerUpdatesText:wsUpdates[removedD].join('\n'),
+        mappingCount:wsUpdates[removedD].length,
+        currentOtgId:otgId, currentOtgName:otgName, notes:noteText
       });
       impacts[removedD].printFlatRecords.push(flatByRemoved[removedD]);
-    }
+    });
 
-    for (const removedD of affectedForGroup) {
+    Object.keys(affectedForGroup).forEach(function(removedD) {
       impacts[removedD].groupUpdates.push({
-        removedD, replacementD: pairMap[removedD], workstationId, workstation, workstationIdentifier,
-        currentOtgId: otgId, currentOtgName: otgName, relatedLomCount: 0, notes: ''
+        removedD:removedD, replacementD:pairMap[removedD], workstationId:workstationId,
+        workstation:workstation, workstationIdentifier:workstationIdentifier,
+        currentOtgId:otgId, currentOtgName:otgName, relatedLomCount:0, notes:''
       });
-    }
+    });
   });
 
   return impacts;
 }
 
-// ─── Parse LOM impacts ────────────────────────────────────────────────────────
+// Parse LOM impacts -- one record per LOM ID
 function parseLomImpacts(data, pairs, lwsImpacts, eprByD) {
-  const pairMap = Object.fromEntries(pairs);
-  const results = {};
-  pairs.forEach(([d]) => results[d] = { rowIds: new Set(), lineUpdates: [] });
+  var pairMap = {};
+  pairs.forEach(function(p){ pairMap[p[0]] = p[1]; });
+  var results = {};
+  pairs.forEach(function(p){ results[p[0]] = { rowIds:{}, lomRecords:[] }; });
 
-  // Build replacement EPR maps for fast lookup
-  const replMaps = {};
-  for (const [, replD] of pairs) {
-    if (replD !== 'N/A' && !replMaps[replD]) replMaps[replD] = getEprRecordMap(eprByD[replD] || []);
-  }
-
-  const rows = getRows(data, 5);
-  rows.forEach((rawRow, rowNum) => {
-    const row = [...rawRow];
-    while (row.length < 8) row.push('');
-    const lomId   = (row[0]||'').trim() || `ROW_${rowNum+6}`;
-    const lomName = (row[1]||'').trim();
-    const destWsId   = (row[4]||'').trim();
-    const destWsName = (row[5]||'').trim();  // may be multiline
-    const col280     = (row[6]||'').trim();
-
-    // Split destination workstation name into individual lines
-    const wsLines = splitLines(destWsName);
-    if (!wsLines.length) wsLines.push('');
-
-    // Check if LOM name contains the D# (for mismatch flagging)
-    const lomNameUpper = lomName.toUpperCase();
-
-    for (const [removedD, replacementD] of pairs) {
-      // Check if any ws line references this removed D#
-      const matchingLines = wsLines
-        .map((line, idx) => ({ line, idx }))
-        .filter(({ line }) => normalizeD(line) === removedD);
-
-      if (!matchingLines.length) continue;
-
-      results[removedD].rowIds.add(lomId);
-
-      // Check if LOM name references this D# — flag mismatch if not
-      const nameHasD = lomNameUpper.includes(removedD);
-
-      const replMap = replMaps[replacementD] || {};
-
-      for (const { line, idx } of matchingLines) {
-        const trayKey = extractTrayKey(line) || 'PLAIN';
-        const replLookup = replacementD === 'N/A' ? null : findReplacementRecord(replMap, trayKey);
-        const replRecord = replLookup ? replLookup.record : null;
-
-        let replName = '';
-        let notes = '';
-        if (replacementD === 'N/A') {
-          replName = '[BLANK — destination will be removed]';
-          // Flag: removing a real workstation destination is significant
-          if (destWsId && destWsId !== '1999') {
-            notes = `LOM destination workstation will be blanked (${removedD} removed with N/A replacement) — verify order routing is intentional`;
-          }
-        } else if (replRecord) {
-          replName = replRecord.deviceName;
-        } else {
-          replName = '[MISSING - Need new EPR]';
-          notes = isStrictTray(trayKey)
-            ? `Tray type ${trayKey} (${trayKey==='WB'?'Wristband':trayKey==='LBL'?'Label':'RX/Label'}) not on replacement — must create new EPR`
-            : `No plain paper tray found on replacement for ${trayKey}`;
-        }
-
-        if (!nameHasD) {
-          notes = (notes ? notes + '; ' : '') + `LOM name "${lomName}" does not reference ${removedD} — verify record`;
-        }
-
-        results[removedD].lineUpdates.push({
-          removedD, replacementD, lomId, lomName,
-          nameMatch: nameHasD,
-          destWsId,
-          lineNum: idx + 1,
-          currentWsName: line,
-          replacementWsName: replName,
-          trayKey,
-          otgLink: col280,
-          notes,
-        });
-      }
-    }
+  var replMaps = {};
+  pairs.forEach(function(p){
+    if (p[1] !== 'N/A' && !replMaps[p[1]]) replMaps[p[1]] = getEprRecordMap(eprByD[p[1]]||[]);
   });
 
-  for (const [removedD, lws] of Object.entries(lwsImpacts)) {
-    const lomCount = results[removedD] ? results[removedD].rowIds.size : 0;
-    for (const gu of lws.groupUpdates) gu.relatedLomCount = lomCount;
-  }
+  var rows = getRows(data, 5);
+  rows.forEach(function(rawRow, rowNum) {
+    var row = rawRow.slice();
+    while (row.length < 8) row.push('');
+    var lomId              = (row[0]||'').trim() || ('ROW_'+(rowNum+6));
+    var lomName            = (row[1]||'').trim();
+    var destDescriptor     = (row[2]||'').trim();
+    var destDescriptorName = (row[3]||'').trim();
+    var destWsId           = (row[4]||'').trim();
+    var destWsName         = (row[5]||'').trim();
+    var col280             = (row[6]||'').trim();
+
+    var wsIdLines   = splitLines(destWsId);
+    var wsNameLines = splitLines(destWsName);
+    var maxLines = Math.max(wsIdLines.length, wsNameLines.length, 1);
+    while (wsIdLines.length   < maxLines) wsIdLines.push('');
+    while (wsNameLines.length < maxLines) wsNameLines.push('');
+
+    var lomNameUpper = lomName.toUpperCase();
+
+    pairs.forEach(function(pair) {
+      var removedD = pair[0], replacementD = pair[1];
+      var hasMatch = wsNameLines.some(function(line){ return normalizeD(line) === removedD; });
+      if (!hasMatch) return;
+
+      results[removedD].rowIds[lomId] = true;
+      var nameHasD = lomNameUpper.indexOf(removedD) >= 0;
+      var replMap  = replMaps[replacementD] || {};
+
+      var currentWsNames = [];
+      var replacementWsNames = [];
+      var allNotes = [];
+
+      for (var i = 0; i < maxLines; i++) {
+        var wsName = wsNameLines[i] || '';
+        var lineD  = normalizeD(wsName);
+
+        if (lineD !== removedD) {
+          // Not this D# -- pass through unchanged
+          currentWsNames.push(wsName);
+          replacementWsNames.push(wsName);
+          continue;
+        }
+
+        currentWsNames.push(wsName);
+        var trayKey = extractTrayKey(wsName) || 'PLAIN';
+        var replLookup = replacementD === 'N/A' ? null : findReplacementRecord(replMap, trayKey);
+        var replRecord = replLookup ? replLookup.record : null;
+
+        if (replacementD === 'N/A') {
+          replacementWsNames.push('[BLANK -- destination will be removed]');
+          if (destWsId && destWsId !== '1999') {
+            allNotes.push('LOM destination will be blanked -- verify order routing is intentional');
+          }
+        } else if (replRecord) {
+          replacementWsNames.push(replRecord.deviceName);
+        } else {
+          replacementWsNames.push('[MISSING - Need new EPR]');
+          allNotes.push(isStrictTray(trayKey)
+            ? 'Tray type ' + trayKey + ' (' + (trayKey==='WB'?'Wristband':trayKey==='LBL'?'Label':'RX/Label') + ') not on replacement -- must create new EPR'
+            : 'No plain paper tray found on replacement for ' + trayKey);
+        }
+      }
+
+      if (!nameHasD) {
+        allNotes.push('LOM name "' + lomName + '" does not reference ' + removedD + ' -- verify record');
+      }
+
+      // Deduplicate notes
+      var seenNotes = {};
+      allNotes = allNotes.filter(function(n){ if(!n||seenNotes[n])return false;seenNotes[n]=true;return true; });
+
+      var hasError = allNotes.some(function(n){ return n.indexOf('new EPR')>=0||n.indexOf('MISSING')>=0||n.indexOf('blanked')>=0; });
+      var hasWarn  = allNotes.some(function(n){ return n.indexOf('verify')>=0; });
+
+      results[removedD].lomRecords.push({
+        removedD:removedD, replacementD:replacementD,
+        lomId:lomId, lomName:lomName,
+        destDescriptor:destDescriptor, destDescriptorName:destDescriptorName,
+        destWsId:destWsId, col280:col280,
+        nameMatch:nameHasD,
+        currentWsNames:currentWsNames,
+        replacementWsNames:replacementWsNames,
+        notes:allNotes.join('; '),
+        hasError:hasError, hasWarn:hasWarn
+      });
+    });
+  });
+
+  // Update LOM count on group updates
+  Object.keys(lwsImpacts).forEach(function(removedD) {
+    var lomCount = results[removedD] ? Object.keys(results[removedD].rowIds).length : 0;
+    lwsImpacts[removedD].groupUpdates.forEach(function(gu){ gu.relatedLomCount = lomCount; });
+  });
 
   return results;
 }
 
-// ─── Build results ────────────────────────────────────────────────────────────
+// Build results
 function buildResults(pairs, eprByD, lwsImpacts, lomImpacts) {
-  const stats = { pairs_processed: pairs.length, removed_found: 0, replacement_found: 0, replacement_fewer_trays: 0, pairs_with_lws: 0, pairs_with_lom: 0, lws_print_rows: 0, lws_group_rows: 0, lom_update_rows: 0, lws_flat_rows: 0, error_pairs: 0 };
-  const results = [];
+  var stats = { pairs_processed:pairs.length, removed_found:0, replacement_found:0, replacement_fewer_trays:0, pairs_with_lws:0, pairs_with_lom:0, lws_print_rows:0, lws_group_rows:0, lom_update_rows:0, lws_flat_rows:0, error_pairs:0 };
+  var results = [];
 
-  for (const [removedD, replacementD] of pairs) {
-    const oldRecords = eprByD[removedD] || [];
-    if (!oldRecords.length) continue;
-    const newRecords = replacementD === 'N/A' ? [] : (eprByD[replacementD] || []);
-    const old = summarizeEpr(oldRecords);
-    const nw = summarizeEpr(newRecords);
+  pairs.forEach(function(pair) {
+    var removedD = pair[0], replacementD = pair[1];
+    var oldRecords = eprByD[removedD] || [];
+    if (!oldRecords.length) return;
+    var newRecords = replacementD === 'N/A' ? [] : (eprByD[replacementD] || []);
+    var old = summarizeEpr(oldRecords);
+    var nw  = summarizeEpr(newRecords);
 
     stats.removed_found++;
     if (newRecords.length) stats.replacement_found++;
 
-    const errors = [];
-    const fewerTrays = newRecords.length && nw.trays < old.trays ? 'Yes' : 'No';
+    var errors = [];
+    var fewerTrays = (newRecords.length && nw.trays < old.trays) ? 'Yes' : 'No';
     if (replacementD !== 'N/A' && !newRecords.length) errors.push('Replacement D# not found in EPR');
     if (newRecords.length && nw.trays < old.trays) { errors.push('Replacement has fewer trays'); stats.replacement_fewer_trays++; }
 
-    // Check for missing strict tray types (WB, LBL, T1)
+    // Check missing strict trays
     if (newRecords.length) {
-      const oldRecs = eprByD[removedD] || [];
-      const newMap = getEprRecordMap(newRecords);
-      for (const rec of oldRecs) {
+      var newMap = getEprRecordMap(newRecords);
+      oldRecords.forEach(function(rec) {
         if (isStrictTray(rec.trayKey) && !newMap[rec.trayKey]) {
-          const label = rec.trayKey === 'WB' ? 'Wristband' : rec.trayKey === 'LBL' ? 'Label' : 'RX/Label';
-          errors.push(`Missing ${label} (${rec.trayKey}) tray on replacement — new EPR needed`);
+          var label = rec.trayKey==='WB'?'Wristband':rec.trayKey==='LBL'?'Label':'RX/Label';
+          errors.push('Missing ' + label + ' (' + rec.trayKey + ') tray on replacement -- new EPR needed');
           stats.replacement_fewer_trays++;
+        }
+      });
+    }
+
+    // Check LWS printer record -- only flag if replacement D# is referenced in a LOM record
+    // (that's the only time a missing workstation record actually blocks the build)
+    if (replacementD !== 'N/A' && newRecords.length) {
+      var replWsMap = (state.lwsWorkstationIndex||{})[replacementD] || {};
+      if (Object.keys(replWsMap).length === 0) {
+        var lomImpactCheck = lomImpacts[removedD] || { lomRecords:[] };
+        var usedInLom = (lomImpactCheck.lomRecords||[]).some(function(rec) {
+          return rec.replacementD === replacementD;
+        });
+        if (usedInLom) {
+          errors.push('Replacement D# (' + replacementD + ') has no LWS printer record -- LOM 110 field cannot be populated');
         }
       }
     }
 
-    // Flag if replacement D# exists in EPR but has no LWS printer record
-    if (replacementD !== 'N/A' && newRecords.length) {
-      // lwsWorkstationIndex is passed in via state — check at call site
-      const replWsMap = (state.lwsWorkstationIndex || {})[replacementD] || {};
-      if (Object.keys(replWsMap).length === 0) {
-        errors.push(`Replacement D# (${replacementD}) has no LWS printer record — workstation not set up in Epic`);
-      }
-    }
-
-    const lws = lwsImpacts[removedD] || { workstationIds: new Set(), printMappingUpdates: [], groupUpdates: [], printFlatRecords: [] };
-    const lom = lomImpacts[removedD] || { rowIds: new Set(), updates: [] };
-    const lwsCount = lws.workstationIds.size;
-    const lomCount = lom.rowIds ? lom.rowIds.size : 0;
+    var lws = lwsImpacts[removedD] || { workstationIds:{}, printMappingUpdates:[], groupUpdates:[], printFlatRecords:[] };
+    var lom = lomImpacts[removedD] || { rowIds:{}, lomRecords:[] };
+    var lwsCount = Object.keys(lws.workstationIds).length;
+    var lomCount = Object.keys(lom.rowIds).length;
     if (lwsCount) stats.pairs_with_lws++;
     if (lomCount) stats.pairs_with_lom++;
     stats.lws_print_rows += lws.printMappingUpdates.length;
     stats.lws_group_rows += lws.groupUpdates.length;
-    stats.lom_update_rows += lom.lineUpdates ? lom.lineUpdates.length : (lom.updates ? lom.updates.length : 0);
+    stats.lom_update_rows += (lom.lomRecords||[]).length;
     stats.lws_flat_rows += lws.printFlatRecords.length;
 
-    const hasNotes = [...lws.printMappingUpdates, ...lws.groupUpdates, ...(lom.lineUpdates||[])].some(u => u.notes);
+    var hasNotes = lws.printMappingUpdates.concat(lws.groupUpdates).concat(lom.lomRecords||[]).some(function(u){return u.notes;});
     if (hasNotes) errors.push('One or more detail rows need review');
     if (errors.length) stats.error_pairs++;
 
-    let buildNeeded = lwsCount && lomCount ? 'Both' : (lwsCount ? 'LWS' : (lomCount ? 'LOM' : 'None'));
+    var buildNeeded = (lwsCount && lomCount) ? 'Both' : (lwsCount ? 'LWS' : (lomCount ? 'LOM' : 'None'));
     if ((replacementD !== 'N/A' && !newRecords.length) || (newRecords.length && nw.trays < old.trays)) {
       buildNeeded = (lwsCount || lomCount) ? 'Error' : 'None';
     }
 
-    results.push({ removedD, replacementD, currentEpicNumbers: old.numbers, currentEpicNames: old.names, replacementEpicNumbers: nw.numbers, replacementEpicNames: nw.names, currentTrays: old.trays, replacementTrays: nw.trays, fewerTrays, lwsRows: lwsCount, lomRows: lomCount, buildNeeded, errors: [...new Set(errors)].join('; ') });
-  }
-  return { results, stats };
+    // Deduplicate errors
+    var seenErr = {};
+    errors = errors.filter(function(e){if(!e||seenErr[e])return false;seenErr[e]=true;return true;});
+
+    results.push({ removedD:removedD, replacementD:replacementD, currentEpicNumbers:old.numbers, currentEpicNames:old.names, replacementEpicNumbers:nw.numbers, replacementEpicNames:nw.names, currentTrays:old.trays, replacementTrays:nw.trays, fewerTrays:fewerTrays, lwsRows:lwsCount, lomRows:lomCount, buildNeeded:buildNeeded, errors:errors.join('; ') });
+  });
+  return { results:results, stats:stats };
 }
 
-// ─── LWS Flat file ───────────────────────────────────────────────────────────
+// LWS Flat file
 function buildFlatFile(lwsImpacts) {
-  const lines = ['##INI=LWS'];
-  for (const impact of Object.values(lwsImpacts)) {
-    for (const rec of impact.printFlatRecords) {
-      if (!rec.classifications.length && !rec.remoteDeviceIds.length) continue;
-      lines.push(`1,${rec.workstationId}`);
-      lines.push(`25,${rec.workstationIdentifier}`);
-      lines.push(`95,${rec.otgId}`);
-      for (const v of rec.classifications) lines.push(`400,${v}`);
-      for (const v of rec.remoteDeviceIds) lines.push(`406,${v||''}`);
-      for (const v of rec.deviceConfigIds) lines.push(`407,${v}`);
-      for (const v of rec.printPrompts) lines.push(`410,${v}`);
-      for (const v of rec.printOptions) lines.push(`415,${v}`);
-    }
-  }
+  var lines = ['##INI=LWS'];
+  Object.values(lwsImpacts).forEach(function(impact) {
+    impact.printFlatRecords.forEach(function(rec) {
+      if (!rec.classifications.length && !rec.remoteDeviceIds.length) return;
+      lines.push('1,' + rec.workstationId);
+      lines.push('25,' + rec.workstationIdentifier);
+      lines.push('95,' + rec.otgId);
+      rec.classifications.forEach(function(v){ lines.push('400,' + v); });
+      rec.remoteDeviceIds.forEach(function(v){ lines.push('406,' + (v||'')); });
+      rec.deviceConfigIds.forEach(function(v){ lines.push('407,' + v); });
+      rec.printPrompts.forEach(function(v){ lines.push('410,' + v); });
+      rec.printOptions.forEach(function(v){ lines.push('415,' + v); });
+    });
+  });
   return lines.join('\n') + '\n';
 }
 
-// ─── LOM Flat file builder ───────────────────────────────────────────────────
+// LOM Flat file
 function buildLomFlatFile(lomImpacts, lwsWorkstationIndex) {
-  const lines = ['##INI=LOM'];
-  let count = 0;
-
-  for (const impact of Object.values(lomImpacts)) {
-    for (const item of (impact.lineUpdates || [])) {
-      if (item.replacementD === 'N/A') continue;
-
-      // Get replacement LWS workstation ID matched by tray
-      const replWsMap = lwsWorkstationIndex[item.replacementD] || {};
-      const chain = trayFallbackChain(item.trayKey);
-      let replWsId = null;
-      for (const key of chain) {
-        if (replWsMap[key]) { replWsId = replWsMap[key]; break; }
-      }
-
-      lines.push(`.1,${item.lomId}`);
-      lines.push(`100,${item.destDescriptor}`);
-      lines.push(`110,${replWsId || ''}`);
+  var lines = ['##INI=LOM'];
+  var count = 0;
+  Object.values(lomImpacts).forEach(function(impact) {
+    (impact.lomRecords||[]).forEach(function(item) {
+      if (item.replacementD === 'N/A') return;
+      var replWsMap = lwsWorkstationIndex[item.replacementD] || {};
+      lines.push('.1,' + item.lomId);
+      lines.push('100,' + item.destDescriptor);
+      item.replacementWsNames.forEach(function(replWsName) {
+        if (replWsName.indexOf('MISSING') >= 0 || replWsName.indexOf('BLANK') >= 0) {
+          lines.push('110,');
+        } else {
+          var trayKey = extractTrayKey(replWsName) || 'PLAIN';
+          var chain = trayFallbackChain(trayKey);
+          var replWsId = null;
+          for (var i = 0; i < chain.length; i++) {
+            if (replWsMap[chain[i]]) { replWsId = replWsMap[chain[i]]; break; }
+          }
+          lines.push('110,' + (replWsId||''));
+        }
+      });
       count++;
-    }
-  }
-
-  return { content: lines.join('\n') + '\n', count };
+    });
+  });
+  return { content: lines.join('\n') + '\n', count: count };
 }
 
-// ─── LWS Flat file preview ───────────────────────────────────────────────────
+// LWS Flat preview
 function renderFlatPreview(flatContent) {
-  const container = document.getElementById('flat-preview');
-  const emptyEl = document.getElementById('flat-empty');
-  const countEl = document.getElementById('flat-record-count');
-  const tabBtn = document.getElementById('flat-tab-btn');
-
+  var container = document.getElementById('flat-preview');
+  var emptyEl   = document.getElementById('flat-empty');
+  var countEl   = document.getElementById('flat-record-count');
+  var tabBtn    = document.getElementById('flat-tab-btn');
   if (!flatContent || flatContent.trim() === '##INI=LWS') {
-    container.innerHTML = '';
-    emptyEl.style.display = '';
-    if (tabBtn) tabBtn.style.display = 'none';
-    return;
+    container.innerHTML = ''; emptyEl.style.display = '';
+    if (tabBtn) tabBtn.style.display = 'none'; return;
   }
-
   emptyEl.style.display = 'none';
   if (tabBtn) tabBtn.style.display = '';
-
-  // Parse into workstation blocks
-  const lines = flatContent.split('\n').filter(l => l.trim());
-  const blocks = [];
-  let current = null;
-
-  for (const line of lines) {
-    if (line === '##INI=LWS') continue;
-    const comma = line.indexOf(',');
-    if (comma === -1) continue;
-    const field = line.slice(0, comma).trim();
-    const value = line.slice(comma + 1);
-
-    if (field === '1') {
-      if (current) blocks.push(current);
-      current = { wsId: value, wsIdentifier: '', otgId: '', rows: [] };
-    } else if (current) {
-      if (field === '25') current.wsIdentifier = value;
-      else if (field === '95') current.otgId = value;
-      else current.rows.push({ field, value });
+  var lines = flatContent.split('\n').filter(function(l){return l.trim();});
+  var blocks = [], current = null;
+  lines.forEach(function(line) {
+    if (line === '##INI=LWS') return;
+    var comma = line.indexOf(','); if (comma === -1) return;
+    var field = line.slice(0, comma).trim(), value = line.slice(comma+1);
+    if (field === '1') { if (current) blocks.push(current); current = { wsId:value, wsIdentifier:'', otgId:'', rows:[] }; }
+    else if (current) {
+      if (field==='25') current.wsIdentifier=value;
+      else if (field==='95') current.otgId=value;
+      else current.rows.push({field:field,value:value});
     }
-  }
+  });
   if (current) blocks.push(current);
-
-  countEl.textContent = `${blocks.length} workstation record${blocks.length !== 1 ? 's' : ''} · ${lines.length - 1} lines`;
-
-  // Field label map
-  const fieldLabels = { '400': 'Classification', '406': 'Remote Device ID', '407': 'Device Config', '410': 'Print Prompt', '415': 'Print Option' };
-
-  container.innerHTML = blocks.map((block, bi) => {
-    const rowsHtml = block.rows.map(r => {
-      const label = fieldLabels[r.field] || `Field ${r.field}`;
-      const isDeviceId = r.field === '406';
-      const isMissing = !r.value || r.value.trim() === '';
-      return `<tr>
-        <td style="color:var(--muted);font-family:var(--mono);font-size:10px;width:60px;padding:5px 10px">${r.field}</td>
-        <td style="color:var(--muted);font-size:10px;width:120px;padding:5px 10px">${label}</td>
-        <td style="font-family:var(--mono);font-size:11px;padding:5px 10px;color:${isDeviceId && isMissing ? 'var(--warn)' : isDeviceId ? 'var(--accent-dark)' : 'var(--text)'}">${isMissing && isDeviceId ? '(blank — N/A replacement)' : esc(r.value)}</td>
-      </tr>`;
+  countEl.textContent = blocks.length + ' workstation record' + (blocks.length!==1?'s':'') + ' - ' + (lines.length-1) + ' lines';
+  var fieldLabels = {'400':'Classification','406':'Remote Device ID','407':'Device Config','410':'Print Prompt','415':'Print Option'};
+  container.innerHTML = blocks.map(function(block, bi) {
+    var rowsHtml = block.rows.map(function(r) {
+      var label = fieldLabels[r.field]||('Field '+r.field);
+      var isDeviceId = r.field==='406', isMissing = !r.value||r.value.trim()==='';
+      return '<tr><td style="color:var(--muted);font-family:var(--mono);font-size:10px;width:60px;padding:5px 10px">'+r.field+'</td><td style="color:var(--muted);font-size:10px;width:120px;padding:5px 10px">'+label+'</td><td style="font-family:var(--mono);font-size:11px;padding:5px 10px;color:'+(isDeviceId&&isMissing?'var(--warn)':isDeviceId?'var(--accent-dark)':'var(--text)')+'">'+(isMissing&&isDeviceId?'(blank - N/A replacement)':esc(r.value))+'</td></tr>';
     }).join('');
-
-    return `<div style="border-bottom:2px solid var(--border);background:${bi%2===0?'var(--surface)':'var(--surface2)'}">
-      <div style="padding:8px 16px;display:flex;align-items:center;gap:16px;background:var(--surface2);border-bottom:1px solid var(--border);cursor:pointer"
-           onclick="toggleFlatBlock(${bi})">
-        <span style="font-family:var(--mono);font-size:11px;font-weight:600;color:var(--accent-dark)">WS ${esc(block.wsId)}</span>
-        <span style="font-family:var(--mono);font-size:10px;color:var(--text2)">${esc(block.wsIdentifier)}</span>
-        ${block.otgId ? `<span style="font-family:var(--mono);font-size:10px;color:var(--muted)">OTG: ${esc(block.otgId)}</span>` : ''}
-        <span style="margin-left:auto;font-size:10px;color:var(--muted)">${block.rows.length} field${block.rows.length!==1?'s':''} ▾</span>
-      </div>
-      <div id="flat-block-${bi}" style="display:none">
-        <table style="width:100%;border-collapse:collapse;font-size:12px">
-          <colgroup><col style="width:60px"><col style="width:120px"><col></colgroup>
-          ${rowsHtml}
-        </table>
-      </div>
-    </div>`;
+    return '<div style="border-bottom:2px solid var(--border);background:'+(bi%2===0?'var(--surface)':'var(--surface2)')+'"><div style="padding:8px 16px;display:flex;align-items:center;gap:16px;background:var(--surface2);border-bottom:1px solid var(--border);cursor:pointer" onclick="toggleFlatBlock('+bi+')"><span style="font-family:var(--mono);font-size:11px;font-weight:600;color:var(--accent-dark)">WS '+esc(block.wsId)+'</span><span style="font-family:var(--mono);font-size:10px;color:var(--text2)">'+esc(block.wsIdentifier)+'</span>'+(block.otgId?'<span style="font-family:var(--mono);font-size:10px;color:var(--muted)">OTG: '+esc(block.otgId)+'</span>':'')+'<span style="margin-left:auto;font-size:10px;color:var(--muted)">'+block.rows.length+' field'+(block.rows.length!==1?'s':'')+' v</span></div><div id="flat-block-'+bi+'" style="display:none"><table style="width:100%;border-collapse:collapse;font-size:12px"><colgroup><col style="width:60px"><col style="width:120px"><col></colgroup>'+rowsHtml+'</table></div></div>';
   }).join('');
 }
 
-function toggleFlatBlock(idx) {
-  const el = document.getElementById('flat-block-' + idx);
-  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+function toggleFlatBlock(idx) { var el=document.getElementById('flat-block-'+idx); if(el) el.style.display=el.style.display==='none'?'block':'none'; }
+
+// LOM Flat preview
+function renderLomFlatPreview(flatContent) {
+  var container = document.getElementById('lom-flat-preview');
+  var emptyEl   = document.getElementById('lom-flat-empty');
+  var countEl   = document.getElementById('lom-flat-record-count');
+  var tabBtn    = document.getElementById('lom-flat-tab-btn');
+  if (!flatContent || flatContent.trim() === '##INI=LOM') {
+    container.innerHTML = ''; emptyEl.style.display = '';
+    if (tabBtn) tabBtn.style.display = 'none'; return;
+  }
+  emptyEl.style.display = 'none';
+  if (tabBtn) tabBtn.style.display = '';
+  var lines = flatContent.split('\n').filter(function(l){return l.trim();});
+  var blocks = [], current = null;
+  lines.forEach(function(line) {
+    if (line === '##INI=LOM') return;
+    var comma = line.indexOf(','); if (comma===-1) return;
+    var field = line.slice(0,comma).trim(), value = line.slice(comma+1).trim();
+    if (field==='.1') { if(current) blocks.push(current); current={lomId:value,destDescriptor:'',wsLines:[],missing:false}; }
+    else if (current) {
+      if (field==='100') current.destDescriptor=value;
+      else if (field==='110') { current.wsLines.push(value); if(!value) current.missing=true; }
+    }
+  });
+  if (current) blocks.push(current);
+  var missingCount = blocks.filter(function(b){return b.missing;}).length;
+  countEl.textContent = blocks.length + ' record' + (blocks.length!==1?'s':'') + (missingCount?' - '+missingCount+' missing WS ID':'');
+  container.innerHTML = blocks.map(function(block, bi) {
+    var rowsHtml = '<tr><td style="color:var(--muted);font-family:var(--mono);font-size:10px;width:60px;padding:5px 10px">100</td><td style="color:var(--muted);font-size:10px;width:160px;padding:5px 10px">Dest Descriptor</td><td style="font-family:var(--mono);font-size:11px;padding:5px 10px;color:var(--text)">'+esc(block.destDescriptor)+'</td></tr>';
+    block.wsLines.forEach(function(wsId) {
+      var warn = !wsId;
+      rowsHtml += '<tr><td style="color:var(--muted);font-family:var(--mono);font-size:10px;width:60px;padding:5px 10px">110</td><td style="color:var(--muted);font-size:10px;width:160px;padding:5px 10px">Dest Workstation ID</td><td style="font-family:var(--mono);font-size:11px;padding:5px 10px;color:'+(warn?'var(--warn)':'var(--accent-dark)')+'">'+( warn?'(missing)':esc(wsId))+'</td></tr>';
+    });
+    return '<div style="border-bottom:2px solid var(--border);background:'+(bi%2===0?'var(--surface)':'var(--surface2)')+'"><div style="padding:8px 16px;display:flex;align-items:center;gap:16px;background:var(--surface2);border-bottom:1px solid var(--border);cursor:pointer" onclick="toggleLomFlatBlock('+bi+')"><span style="font-family:var(--mono);font-size:11px;font-weight:600;color:'+(block.missing?'var(--warn)':'var(--accent-dark)')+'">LOM '+esc(block.lomId)+'</span>'+(block.missing?'<span style="font-size:10px;color:var(--warn)">No WS match</span>':'')+'<span style="margin-left:auto;font-size:10px;color:var(--muted)">v</span></div><div id="lom-flat-block-'+bi+'" style="display:none"><table style="width:100%;border-collapse:collapse;font-size:12px"><colgroup><col style="width:60px"><col style="width:160px"><col></colgroup>'+rowsHtml+'</table></div></div>';
+  }).join('');
 }
+
+function toggleLomFlatBlock(idx) { var el=document.getElementById('lom-flat-block-'+idx); if(el) el.style.display=el.style.display==='none'?'block':'none'; }
 
 function copyFlatFile() {
   if (!state.flatContent) return;
-  navigator.clipboard.writeText(state.flatContent).then(() => {
-    showToast('Flat file copied to clipboard');
-  }).catch(() => {
-    showToast('Copy failed — use Download instead');
-  });
+  navigator.clipboard.writeText(state.flatContent).then(function(){showToast('LWS flat file copied');}).catch(function(){showToast('Copy failed - use Download');});
 }
-
-function showToast(msg) {
-  // Simple status update as toast
-  setStatus('success', msg);
-  setTimeout(() => setStatus('idle', ''), 2500);
-}
-
-// ─── LOM Flat file preview ───────────────────────────────────────────────────
-function renderLomFlatPreview(flatContent) {
-  const container = document.getElementById('lom-flat-preview');
-  const emptyEl   = document.getElementById('lom-flat-empty');
-  const countEl   = document.getElementById('lom-flat-record-count');
-  const tabBtn    = document.getElementById('lom-flat-tab-btn');
-
-  if (!flatContent || flatContent.trim() === '##INI=LOM') {
-    container.innerHTML = '';
-    emptyEl.style.display = '';
-    if (tabBtn) tabBtn.style.display = 'none';
-    return;
-  }
-
-  emptyEl.style.display = 'none';
-  if (tabBtn) tabBtn.style.display = '';
-
-  // Parse into LOM record blocks (.1 starts each record)
-  const lines = flatContent.split('\n').filter(l => l.trim());
-  const blocks = [];
-  let current = null;
-
-  for (const line of lines) {
-    if (line === '##INI=LOM') continue;
-    const comma = line.indexOf(',');
-    if (comma === -1) continue;
-    const field = line.slice(0, comma).trim();
-    const value = line.slice(comma + 1).trim();
-
-    if (field === '.1') {
-      if (current) blocks.push(current);
-      current = { lomId: value, destDescriptor: '', destWsId: '', missing: false };
-    } else if (current) {
-      if (field === '100') current.destDescriptor = value;
-      else if (field === '110') {
-        current.destWsId = value;
-        if (!value) current.missing = true;
-      }
-    }
-  }
-  if (current) blocks.push(current);
-
-  const missingCount = blocks.filter(b => b.missing).length;
-  countEl.textContent = `${blocks.length} record${blocks.length !== 1 ? 's' : ''}${missingCount ? ` · ${missingCount} missing WS ID` : ''}`;
-
-  const fieldLabels = { '100': 'Dest Descriptor', '110': 'Dest Workstation ID' };
-
-  container.innerHTML = blocks.map((block, bi) => {
-    const rows = [
-      { field: '100', label: 'Dest Descriptor',    value: block.destDescriptor, warn: false },
-      { field: '110', label: 'Dest Workstation ID', value: block.destWsId,       warn: block.missing },
-    ];
-    const rowsHtml = rows.map(r => `
-      <tr>
-        <td style="color:var(--muted);font-family:var(--mono);font-size:10px;width:60px;padding:5px 10px">${r.field}</td>
-        <td style="color:var(--muted);font-size:10px;width:160px;padding:5px 10px">${r.label}</td>
-        <td style="font-family:var(--mono);font-size:11px;padding:5px 10px;color:${r.warn ? 'var(--warn)' : r.field==='110' ? 'var(--accent-dark)' : 'var(--text)'}">${r.warn ? '(missing — no matching LWS tray)' : esc(r.value)}</td>
-      </tr>`).join('');
-
-    return `<div style="border-bottom:2px solid var(--border);background:${bi%2===0?'var(--surface)':'var(--surface2)'}">
-      <div style="padding:8px 16px;display:flex;align-items:center;gap:16px;background:var(--surface2);border-bottom:1px solid var(--border);cursor:pointer"
-           onclick="toggleLomFlatBlock(${bi})">
-        <span style="font-family:var(--mono);font-size:11px;font-weight:600;color:${block.missing?'var(--warn)':'var(--accent-dark)'}">LOM ${esc(block.lomId)}</span>
-        ${block.missing ? '<span style="font-size:10px;color:var(--warn)">⚠ No WS match</span>' : ''}
-        <span style="margin-left:auto;font-size:10px;color:var(--muted)">▾</span>
-      </div>
-      <div id="lom-flat-block-${bi}" style="display:none">
-        <table style="width:100%;border-collapse:collapse;font-size:12px">
-          <colgroup><col style="width:60px"><col style="width:160px"><col></colgroup>
-          ${rowsHtml}
-        </table>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function toggleLomFlatBlock(idx) {
-  const el = document.getElementById('lom-flat-block-' + idx);
-  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
-}
-
 function copyLomFlatFile() {
   if (!state.lomFlatContent) return;
-  navigator.clipboard.writeText(state.lomFlatContent).then(() => {
-    showToast('LOM flat file copied to clipboard');
-  }).catch(() => {
-    showToast('Copy failed — use Download instead');
-  });
+  navigator.clipboard.writeText(state.lomFlatContent).then(function(){showToast('LOM flat file copied');}).catch(function(){showToast('Copy failed - use Download');});
 }
-
+function downloadFlat() {
+  if (!state.flatContent) return;
+  var blob = new Blob([state.flatContent],{type:'text/plain'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a'); a.href=url; a.download='LWS_updates_v3_'+ts()+'.txt'; a.click(); URL.revokeObjectURL(url);
+}
 function downloadLomFlat() {
   if (!state.lomFlatContent) return;
-  const blob = new Blob([state.lomFlatContent], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `LOM_updates_${new Date().toISOString().replace(/[:.]/g,'-').slice(0,19)}.txt`;
-  a.click();
-  URL.revokeObjectURL(url);
+  var blob = new Blob([state.lomFlatContent],{type:'text/plain'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a'); a.href=url; a.download='LOM_updates_v3_'+ts()+'.txt'; a.click(); URL.revokeObjectURL(url);
 }
+function ts() { return new Date().toISOString().replace(/[:.]/g,'-').slice(0,19); }
+function showToast(msg) { setStatus('success', msg); setTimeout(function(){setStatus('idle','');}, 2500); }
 
-// ─── UI helpers ───────────────────────────────────────────────────────────────
+// UI helpers
 function setStatus(type, msg) {
-  const dot = document.getElementById('status-dot');
-  const txt = document.getElementById('status-text');
-  dot.className = 'status-dot ' + (type === 'loading' ? 'running' : type === 'error' ? 'error' : type === 'success' ? 'success' : '');
+  var dot = document.getElementById('status-dot');
+  var txt = document.getElementById('status-text');
+  dot.className = 'status-dot ' + (type==='loading'?'running':type==='error'?'error':type==='success'?'success':'');
   txt.textContent = msg;
 }
 
 function setProgress(pct) {
-  const wrap = document.getElementById('progress-wrap');
-  const fill = document.getElementById('progress-fill');
-  wrap.style.display = pct > 0 && pct < 100 ? 'block' : 'none';
-  fill.style.width = pct + '%';
+  var wrap = document.getElementById('progress-wrap');
+  var fill = document.getElementById('progress-fill');
+  wrap.style.display = (pct>0&&pct<100)?'block':'none';
+  fill.style.width = pct+'%';
 }
 
 function showTab(name) {
-  const tabs = ['build','lws-print','lws-group','lom','errors','flat','lom-flat'];
-  tabs.forEach(t => {
-    document.getElementById('tab-' + t).classList.toggle('hidden', t !== name);
-  });
-  document.querySelectorAll('.tab').forEach((btn, i) => {
-    btn.classList.toggle('active', tabs[i] === name);
-  });
+  var tabs = ['build','lws-print','lws-group','lom','errors','flat','lom-flat'];
+  tabs.forEach(function(t){ document.getElementById('tab-'+t).classList.toggle('hidden', t!==name); });
+  var tabBtns = document.querySelectorAll('.tab');
+  tabBtns.forEach(function(btn, i){ btn.classList.toggle('active', tabs[i]===name); });
   state.activeTab = name;
 }
 
-// ─── Build tab filters ────────────────────────────────────────────────────────
-let currentBuildFilter = 'all';
-
+// Build tab filters
+var currentBuildFilter = 'all';
 function setBuildFilter(filter) {
   currentBuildFilter = filter;
-  document.querySelectorAll('.filter-chip').forEach(c => {
-    c.classList.toggle('active', c.dataset.filter === filter);
-  });
+  document.querySelectorAll('.filter-chip').forEach(function(c){ c.classList.toggle('active', c.dataset.filter===filter); });
   filterBuildTable();
 }
-
 function filterBuildTable() {
-  const search = (document.getElementById('build-search').value || '').trim().toUpperCase();
-  const rows = document.querySelectorAll('#build-tbody tr');
-  let visible = 0;
-
-  rows.forEach(tr => {
-    const text = tr.innerText.toUpperCase();
-    const hasError = tr.classList.contains('row-error');
-    const hasWarn  = tr.classList.contains('row-warn');
-    // Get build needed cell (col index 11)
-    const cells = tr.querySelectorAll('td');
-    const buildNeeded = cells[11] ? cells[11].innerText.trim() : '';
-    const lwsRows  = cells[9]  ? parseInt(cells[9].innerText)  || 0 : 0;
-    const lomRows  = cells[10] ? parseInt(cells[10].innerText) || 0 : 0;
-    const replD    = cells[1]  ? cells[1].innerText.trim().toUpperCase() : '';
-
-    let show = true;
-
-    // Apply filter
-    if (currentBuildFilter === 'errors')  show = hasError || hasWarn;
-    else if (currentBuildFilter === 'lws') show = lwsRows > 0;
-    else if (currentBuildFilter === 'lom') show = lomRows > 0;
-    else if (currentBuildFilter === 'na')  show = replD === 'N/A';
-
-    // Apply search
-    if (show && search) show = text.includes(search);
-
-    tr.style.display = show ? '' : 'none';
+  var search = (document.getElementById('build-search').value||'').trim().toUpperCase();
+  var rows = document.querySelectorAll('#build-tbody tr');
+  var visible = 0;
+  rows.forEach(function(tr) {
+    var text = tr.innerText.toUpperCase();
+    var hasError = tr.classList.contains('row-error');
+    var hasWarn  = tr.classList.contains('row-warn');
+    var cells = tr.querySelectorAll('td');
+    var lwsRows = cells[9]  ? (parseInt(cells[9].innerText)||0)  : 0;
+    var lomRows = cells[10] ? (parseInt(cells[10].innerText)||0) : 0;
+    var replD   = cells[1]  ? cells[1].innerText.trim().toUpperCase() : '';
+    var show = true;
+    if      (currentBuildFilter==='errors') show = hasError||hasWarn;
+    else if (currentBuildFilter==='lws')    show = lwsRows>0;
+    else if (currentBuildFilter==='lom')    show = lomRows>0;
+    else if (currentBuildFilter==='na')     show = replD==='N/A';
+    if (show && search) show = text.indexOf(search)>=0;
+    tr.style.display = show?'':'none';
     if (show) visible++;
   });
-
-  const countEl = document.getElementById('build-filter-count');
-  if (countEl) {
-    const total = rows.length;
-    countEl.textContent = visible < total ? `${visible} of ${total} pairs` : `${total} pairs`;
-  }
+  var countEl = document.getElementById('build-filter-count');
+  if (countEl) countEl.textContent = visible<rows.length?(visible+' of '+rows.length+' pairs'):(rows.length+' pairs');
 }
 
 function badgeHtml(val) {
-  const cls = { 'Both': 'badge-both', 'LWS': 'badge-lws', 'LOM': 'badge-lom', 'None': 'badge-none', 'Error': 'badge-error' }[val] || 'badge-none';
-  return `<span class="badge ${cls}">${val}</span>`;
+  var cls = {'Both':'badge-both','LWS':'badge-lws','LOM':'badge-lom','None':'badge-none','Error':'badge-error'}[val]||'badge-none';
+  return '<span class="badge '+cls+'">'+val+'</span>';
 }
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-function esc(s) {
-  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-// ─── Validate pairs ───────────────────────────────────────────────────────────
 function validatePairs() {
-  const text = document.getElementById('paste-box').value;
-  const pairs = parsePairs(text);
-  if (!pairs.length) {
-    setStatus('error', 'No valid pairs found. Expected format: D##### [tab] D##### per line.');
-    return;
-  }
-  const preview = pairs.slice(0,5).map(([a,b]) => `${a} → ${b}`).join(' | ');
-  const extra = pairs.length > 5 ? ` + ${pairs.length-5} more` : '';
-  setStatus('success', `✓ ${pairs.length} valid pair(s): ${preview}${extra}`);
+  var pairs = parsePairs(document.getElementById('paste-box').value);
+  if (!pairs.length) { setStatus('error','No valid pairs found.'); return; }
+  var preview = pairs.slice(0,5).map(function(p){return p[0]+' -> '+p[1];}).join(' | ');
+  var extra = pairs.length>5?' + '+(pairs.length-5)+' more':'';
+  setStatus('success', pairs.length+' valid pair(s): '+preview+extra);
 }
 
-// ─── Main analysis ────────────────────────────────────────────────────────────
-async function runAnalysis() {
-  const btn = document.getElementById('run-btn');
-
-  if (!state.eprData) return setStatus('error', 'Please load an EPR file first.');
-  if (!state.lwsData) return setStatus('error', 'Please load an LWS file first.');
-  if (!state.lomData) return setStatus('error', 'Please load a LOM file first.');
-
-  const text = document.getElementById('paste-box').value;
-  const pairs = parsePairs(text);
-  if (!pairs.length) return setStatus('error', 'No valid printer pairs found. Check your pasted data.');
-
+// Main analysis
+function runAnalysis() {
+  var btn = document.getElementById('run-btn');
+  if (!state.eprData) return setStatus('error','Please load an EPR file first.');
+  if (!state.lwsData) return setStatus('error','Please load an LWS file first.');
+  if (!state.lomData) return setStatus('error','Please load a LOM file first.');
+  var pairs = parsePairs(document.getElementById('paste-box').value);
+  if (!pairs.length) return setStatus('error','No valid printer pairs found.');
   btn.disabled = true;
 
-  try {
-    setStatus('loading', 'Parsing EPR export…'); setProgress(15);
-    await tick();
-    const eprByD = parseEpr(state.eprData);
+  // Use setTimeout chain to allow UI updates
+  setStatus('loading','Parsing EPR export...'); setProgress(15);
+  setTimeout(function() {
+    try {
+      var eprByD = parseEpr(state.eprData);
+      setStatus('loading','Parsing EUTS data...'); setProgress(25);
+      setTimeout(function() {
+        var eutsMap = state.eutsData ? parseEuts(state.eutsData) : {};
+        setStatus('loading','Building LWS workstation index...'); setProgress(35);
+        setTimeout(function() {
+          var lwsWorkstationIndex = parseLwsWorkstationIndex(state.lwsData);
+          setStatus('loading','Analyzing LWS impacts...'); setProgress(50);
+          setTimeout(function() {
+            var lwsImpacts = parseLwsImpacts(state.lwsData, pairs, eprByD);
+            setStatus('loading','Analyzing LOM impacts...'); setProgress(70);
+            setTimeout(function() {
+              var lomImpacts = parseLomImpacts(state.lomData, pairs, lwsImpacts, eprByD);
+              setStatus('loading','Building results...'); setProgress(85);
+              setTimeout(function() {
+                var res = buildResults(pairs, eprByD, lwsImpacts, lomImpacts);
+                var results = res.results, stats = res.stats;
+                state.results = results; state.lwsImpacts = lwsImpacts;
+                state.lomImpacts = lomImpacts; state.stats = stats;
+                state.eprByD = eprByD; state.eutsMap = eutsMap;
+                state.lwsWorkstationIndex = lwsWorkstationIndex;
 
-    setStatus('loading', 'Parsing EUTS data…'); setProgress(30);
-    await tick();
-    const eutsMap = state.eutsData ? parseEuts(state.eutsData) : {};
+                if (document.getElementById('opt-lws-flat').checked) {
+                  state.flatContent = buildFlatFile(lwsImpacts);
+                  document.getElementById('download-flat-btn').style.display = '';
+                } else {
+                  state.flatContent = null;
+                  document.getElementById('download-flat-btn').style.display = 'none';
+                }
+                renderFlatPreview(state.flatContent);
 
-    setStatus('loading', 'Analyzing LWS impacts…'); setProgress(50);
-    await tick();
-    const lwsWorkstationIndex = parseLwsWorkstationIndex(state.lwsData);
-    const lwsImpacts = parseLwsImpacts(state.lwsData, pairs, eprByD);
+                if (document.getElementById('opt-lom-flat').checked) {
+                  var lomFlat = buildLomFlatFile(lomImpacts, lwsWorkstationIndex);
+                  state.lomFlatContent = lomFlat.content;
+                  document.getElementById('download-lom-flat-btn').style.display = '';
+                  renderLomFlatPreview(state.lomFlatContent);
+                } else {
+                  state.lomFlatContent = null;
+                  document.getElementById('download-lom-flat-btn').style.display = 'none';
+                  renderLomFlatPreview(null);
+                }
 
-    setStatus('loading', 'Analyzing LOM impacts…'); setProgress(70);
-    await tick();
-    const lomImpacts = parseLomImpacts(state.lomData, pairs, lwsImpacts, eprByD);
-
-    setStatus('loading', 'Building results…'); setProgress(85);
-    await tick();
-    const { results, stats } = buildResults(pairs, eprByD, lwsImpacts, lomImpacts);
-
-    state.results = results;
-    state.lwsImpacts = lwsImpacts;
-    state.lomImpacts = lomImpacts;
-    state.stats = stats;
-    state.eprByD = eprByD;
-    state.eutsMap = eutsMap;
-    state.lwsWorkstationIndex = lwsWorkstationIndex;
-
-    if (document.getElementById('opt-lws-flat').checked) {
-      state.flatContent = buildFlatFile(lwsImpacts);
-      document.getElementById('download-flat-btn').style.display = '';
-    } else {
-      state.flatContent = null;
-      document.getElementById('download-flat-btn').style.display = 'none';
+                renderStats(stats);
+                renderTables(results, lwsImpacts, lomImpacts, eutsMap);
+                renderErrors(results, lwsImpacts, lomImpacts);
+                setTimeout(initResizableTables, 50);
+                setProgress(0);
+                setStatus('success', 'Analysis complete -- ' + results.length + ' pairs processed, ' + stats.error_pairs + ' flagged.');
+                document.getElementById('download-btn').style.display = '';
+                updateSourceInfo();
+                btn.disabled = false;
+              }, 10);
+            }, 10);
+          }, 10);
+        }, 10);
+      }, 10);
+    } catch(e) {
+      setStatus('error','Error: '+e.message);
+      console.error(e);
+      btn.disabled = false;
+      setProgress(0);
     }
-    renderFlatPreview(state.flatContent);
-
-    if (document.getElementById('opt-lom-flat').checked) {
-      const lomFlat = buildLomFlatFile(lomImpacts, lwsWorkstationIndex);
-      state.lomFlatContent = lomFlat.content;
-      state.lomFlatCount = lomFlat.count;
-      document.getElementById('download-lom-flat-btn').style.display = '';
-      renderLomFlatPreview(state.lomFlatContent);
-    } else {
-      state.lomFlatContent = null;
-      document.getElementById('download-lom-flat-btn').style.display = 'none';
-      renderLomFlatPreview(null);
-    }
-
-    renderStats(stats);
-    renderTables(results, lwsImpacts, lomImpacts, eutsMap);
-    renderErrors(results, lwsImpacts, lomImpacts);
-    setProgress(100);
-    setProgress(0);
-    setStatus('success', `✓ Analysis complete — ${results.length} pairs processed, ${stats.error_pairs} flagged.`);
-    document.getElementById('download-btn').style.display = '';
-    updateSourceInfo();
-  } catch(e) {
-    setStatus('error', 'Error: ' + e.message);
-    console.error(e);
-  } finally {
-    btn.disabled = false;
-    setProgress(0);
-  }
+  }, 10);
 }
-
-function tick() { return new Promise(r => setTimeout(r, 10)); }
 
 function renderStats(s) {
   document.getElementById('stats-grid').style.display = '';
@@ -1791,502 +1405,249 @@ function renderStats(s) {
 }
 
 function renderTables(results, lwsImpacts, lomImpacts, eutsMap) {
-  // Reset build filter on new results
   currentBuildFilter = 'all';
-  document.querySelectorAll('.filter-chip').forEach(c => c.classList.toggle('active', c.dataset.filter === 'all'));
-  const bSearch = document.getElementById('build-search');
-  if (bSearch) bSearch.value = '';
+  document.querySelectorAll('.filter-chip').forEach(function(c){ c.classList.toggle('active', c.dataset.filter==='all'); });
+  var bSearch = document.getElementById('build-search'); if(bSearch) bSearch.value='';
 
   // Build Review
-  const bTbody = document.getElementById('build-tbody');
+  var bTbody = document.getElementById('build-tbody');
   bTbody.innerHTML = '';
-  document.getElementById('build-empty').style.display = results.length ? 'none' : '';
-  filterBuildTable();
-  for (const r of results) {
-    const hasError = r.errors;
-    const hasWarn = r.fewerTrays === 'Yes';
-    const tr = document.createElement('tr');
-    if (hasError) tr.className = 'row-error';
-    else if (hasWarn) tr.className = 'row-warn';
-    tr.innerHTML = `
-      <td>${esc(r.removedD)}</td><td>${esc(r.replacementD)}</td>
-      <td>${esc(r.currentEpicNumbers)}</td><td>${esc(r.currentEpicNames)}</td>
-      <td>${esc(r.replacementEpicNumbers)}</td><td>${esc(r.replacementEpicNames)}</td>
-      <td style="text-align:center">${r.currentTrays}</td><td style="text-align:center">${r.replacementTrays}</td>
-      <td style="text-align:center;color:${r.fewerTrays==='Yes'?'var(--warn)':'inherit'}">${esc(r.fewerTrays)}</td>
-      <td style="text-align:center">${r.lwsRows}</td><td style="text-align:center">${r.lomRows}</td>
-      <td>${badgeHtml(r.buildNeeded)}</td>
-      <td style="color:var(--error);font-size:10px">${esc(r.errors)}</td>
-    `;
+  document.getElementById('build-empty').style.display = results.length?'none':'';
+  results.forEach(function(r) {
+    var tr = document.createElement('tr');
+    if (r.errors) tr.className = 'row-error';
+    else if (r.fewerTrays==='Yes') tr.className = 'row-warn';
+    tr.innerHTML = '<td>'+esc(r.removedD)+'</td><td>'+esc(r.replacementD)+'</td><td>'+esc(r.currentEpicNumbers)+'</td><td>'+esc(r.currentEpicNames)+'</td><td>'+esc(r.replacementEpicNumbers)+'</td><td>'+esc(r.replacementEpicNames)+'</td><td style="text-align:center">'+r.currentTrays+'</td><td style="text-align:center">'+r.replacementTrays+'</td><td style="text-align:center;color:'+(r.fewerTrays==='Yes'?'var(--warn)':'inherit')+'">'+esc(r.fewerTrays)+'</td><td style="text-align:center">'+r.lwsRows+'</td><td style="text-align:center">'+r.lomRows+'</td><td>'+badgeHtml(r.buildNeeded)+'</td><td style="color:var(--error);font-size:10px">'+esc(r.errors)+'</td>';
     bTbody.appendChild(tr);
-  }
+  });
+  filterBuildTable();
 
   // LWS Print Mapping
-  const lpTbody = document.getElementById('lwsp-tbody');
+  var lpTbody = document.getElementById('lwsp-tbody');
   lpTbody.innerHTML = '';
-  let lwspRows = 0;
-  for (const [removedD, impact] of Object.entries(lwsImpacts)) {
-    for (const item of impact.printMappingUpdates) {
+  var lwspRows = 0;
+  Object.values(lwsImpacts).forEach(function(impact) {
+    impact.printMappingUpdates.forEach(function(item) {
       lwspRows++;
-      const tr = document.createElement('tr');
+      var tr = document.createElement('tr');
       if (item.notes) tr.className = 'row-warn';
-      tr.innerHTML = `
-        <td>${esc(item.removedD)}</td><td>${esc(item.replacementD)}</td>
-        <td>${esc(item.workstationId)}</td><td>${esc(item.workstation)}</td><td>${esc(item.workstationIdentifier)}</td>
-        <td>${esc(item.printerClassificationsText)}</td>
-        <td>${esc(item.currentEprIdsText)}</td><td>${esc(item.replacementEprIdsText)}</td>
-        <td>${esc(item.printerUpdatesText)}</td><td style="text-align:center">${item.mappingCount}</td>
-        <td>${esc(item.currentOtgId)}</td><td>${esc(item.currentOtgName)}</td>
-        <td style="color:var(--warn);font-size:10px">${esc(item.notes)}</td>
-      `;
+      tr.innerHTML = '<td>'+esc(item.removedD)+'</td><td>'+esc(item.replacementD)+'</td><td>'+esc(item.workstationId)+'</td><td>'+esc(item.workstation)+'</td><td>'+esc(item.workstationIdentifier)+'</td><td>'+esc(item.printerClassificationsText)+'</td><td>'+esc(item.currentEprIdsText)+'</td><td>'+esc(item.replacementEprIdsText)+'</td><td>'+esc(item.printerUpdatesText)+'</td><td style="text-align:center">'+item.mappingCount+'</td><td>'+esc(item.currentOtgId)+'</td><td>'+esc(item.currentOtgName)+'</td><td style="color:var(--warn);font-size:10px">'+esc(item.notes)+'</td>';
       lpTbody.appendChild(tr);
-    }
-  }
-  document.getElementById('lwsp-empty').style.display = lwspRows ? 'none' : '';
+    });
+  });
+  document.getElementById('lwsp-empty').style.display = lwspRows?'none':'';
 
   // LWS Groups
-  const lgTbody = document.getElementById('lwsg-tbody');
+  var lgTbody = document.getElementById('lwsg-tbody');
   lgTbody.innerHTML = '';
-  let lwsgRows = 0;
-  for (const [removedD, impact] of Object.entries(lwsImpacts)) {
-    for (const item of impact.groupUpdates) {
+  var lwsgRows = 0;
+  Object.values(lwsImpacts).forEach(function(impact) {
+    impact.groupUpdates.forEach(function(item) {
       lwsgRows++;
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${esc(item.removedD)}</td><td>${esc(item.replacementD)}</td>
-        <td>${esc(item.workstationId)}</td><td>${esc(item.workstation)}</td><td>${esc(item.workstationIdentifier)}</td>
-        <td>${esc(item.currentOtgId)}</td><td>${esc(item.currentOtgName)}</td>
-        <td style="text-align:center">${item.relatedLomCount}</td>
-        <td style="color:var(--warn);font-size:10px">${esc(item.notes)}</td>
-      `;
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>'+esc(item.removedD)+'</td><td>'+esc(item.replacementD)+'</td><td>'+esc(item.workstationId)+'</td><td>'+esc(item.workstation)+'</td><td>'+esc(item.workstationIdentifier)+'</td><td>'+esc(item.currentOtgId)+'</td><td>'+esc(item.currentOtgName)+'</td><td style="text-align:center">'+item.relatedLomCount+'</td><td style="color:var(--warn);font-size:10px">'+esc(item.notes)+'</td>';
       lgTbody.appendChild(tr);
-    }
-  }
-  document.getElementById('lwsg-empty').style.display = lwsgRows ? 'none' : '';
+    });
+  });
+  document.getElementById('lwsg-empty').style.display = lwsgRows?'none':'';
 
-  // LOM
-  const lomTbody = document.getElementById('lom-tbody');
+  // LOM -- one row per LOM ID
+  var lomTbody = document.getElementById('lom-tbody');
   lomTbody.innerHTML = '';
-  let lomRows = 0;
-  for (const [removedD, impact] of Object.entries(lomImpacts)) {
-    for (const item of impact.lineUpdates || []) {
+  var lomRows = 0;
+  Object.values(lomImpacts).forEach(function(impact) {
+    (impact.lomRecords||[]).forEach(function(item) {
       lomRows++;
-      const hasError = item.notes && (item.notes.includes('new EPR') || item.notes.includes('MISSING'));
-      const hasMismatch = !item.nameMatch || (item.notes && item.notes.includes('verify'));
-      const tr = document.createElement('tr');
-      if (hasError) tr.className = 'row-error';
-      else if (hasMismatch) tr.className = 'row-warn';
-      const nameMatchHtml = item.nameMatch
-        ? '<span style="color:var(--success)">✓</span>'
-        : '<span style="color:var(--warn)">⚠ Mismatch</span>';
-      const replStyle = item.replacementWsName.includes('MISSING') ? 'color:var(--error)' : item.replacementWsName === '[BLANK]' ? 'color:var(--muted)' : '';
-      tr.innerHTML = `
-        <td>${esc(item.lomId)}</td>
-        <td>${esc(item.lomName)}</td>
-        <td style="text-align:center">${nameMatchHtml}</td>
-        <td>${esc(item.destWsId)}</td>
-        <td style="text-align:center;color:var(--muted)">${item.lineNum}</td>
-        <td>${esc(item.currentWsName)}</td>
-        <td style="${replStyle}">${esc(item.replacementWsName)}</td>
-        <td><span class="badge ${item.trayKey==='WB'?'badge-error':item.trayKey==='LBL'||item.trayKey==='T1'?'badge-lom':item.trayKey==='PLAIN'?'badge-none':'badge-lws'}">${esc(item.trayKey)}</span></td>
-        <td style="color:var(--muted);font-size:10px">${esc(item.otgLink)}</td>
-        <td style="color:${hasError?'var(--error)':'var(--warn)'};font-size:10px">${esc(item.notes)}</td>
-      `;
+      var tr = document.createElement('tr');
+      if (item.hasError) tr.className = 'row-error';
+      else if (item.hasWarn || !item.nameMatch) tr.className = 'row-warn';
+      var nameMatchHtml = item.nameMatch
+        ? '<span style="color:var(--success)">OK</span>'
+        : '<span style="color:var(--warn)">Mismatch</span>';
+      var replLinesHtml = item.replacementWsNames.map(function(n) {
+        if (n.indexOf('MISSING')>=0) return '<span style="color:var(--error)">'+esc(n)+'</span>';
+        if (n.indexOf('BLANK')>=0)   return '<span style="color:var(--muted)">'+esc(n)+'</span>';
+        return esc(n);
+      }).join('\n');
+      tr.innerHTML = '<td>'+esc(item.lomId)+'</td><td>'+esc(item.lomName)+'</td><td>'+esc(item.destDescriptor)+'</td><td>'+esc(item.destDescriptorName)+'</td><td>'+esc(item.destWsId)+'</td><td>'+esc(item.currentWsNames.join('\n'))+'</td><td>'+replLinesHtml+'</td><td style="color:var(--muted);font-size:10px">'+esc(item.col280)+'</td><td style="text-align:center">'+nameMatchHtml+'</td><td style="color:'+(item.hasError?'var(--error)':'var(--warn)')+';font-size:10px">'+esc(item.notes)+'</td>';
       lomTbody.appendChild(tr);
-    }
-  }
-  document.getElementById('lom-empty').style.display = lomRows ? 'none' : '';
+    });
+  });
+  document.getElementById('lom-empty').style.display = lomRows?'none':'';
 }
 
-// ─── Render Errors tab ────────────────────────────────────────────────────────
+// Errors tab
 function renderErrors(results, lwsImpacts, lomImpacts) {
-  const tbody = document.getElementById('errors-tbody');
+  var tbody = document.getElementById('errors-tbody');
   tbody.innerHTML = '';
-
-  // ── Step 1: Collect all raw issues keyed by root cause ────────────────────
-  // Process LWS/LOM detail FIRST so Build Review summary flags only add
-  // pair-level issues that aren't already covered by detail rows.
-  const grouped = {};
+  var grouped = {};
 
   function normalizeIssue(s) {
-    // Strip location-specific wording so Build Review & detail flags merge
-    return s.replace(/\s*—\s*must create new EPR/i, '')
-            .replace(/\s*— new EPR needed/i, '')
-            .replace(/Missing\s+\w+\s+\((\w+)\)\s+tray\s+on\s+replacement/i, 'Tray type $1 not on replacement')
-            .replace(/\s+/g, ' ').trim().toLowerCase();
+    return s.replace(/\s*--\s*must create new EPR/i,'').replace(/\s*-- new EPR needed/i,'')
+            .replace(/Missing\s+\w+\s+\((\w+)\)\s+tray\s+on\s+replacement/i,'Tray type $1 not on replacement')
+            .replace(/\s+/g,' ').trim().toLowerCase();
   }
-
-  function issueKey(severity, pair, issue) {
-    return `${severity}||${pair}||${normalizeIssue(issue)}`;
-  }
-
-  function addIssue(severity, pair, issue, action, locType, locLabel) {
-    const k = issueKey(severity, pair, issue);
-    if (!grouped[k]) {
-      grouped[k] = { severity, pair, issue, action, lws: [], lom: [], other: [] };
-    }
-    // Prefer the more descriptive issue text (detail notes are more specific)
+  function issueKey(sev, pair, issue) { return sev+'||'+pair+'||'+normalizeIssue(issue); }
+  function addIssue(sev, pair, issue, action, locType, locLabel) {
+    var k = issueKey(sev, pair, issue);
+    if (!grouped[k]) grouped[k] = {severity:sev, pair:pair, issue:issue, action:action, lws:[], lom:[], other:[]};
     if (issue.length > grouped[k].issue.length) grouped[k].issue = issue;
-    if (locType === 'lws' && locLabel) grouped[k].lws.push(locLabel);
-    else if (locType === 'lom' && locLabel) grouped[k].lom.push(locLabel);
-    else if (locType === 'other' && locLabel) grouped[k].other.push(locLabel);
+    if (locType==='lws'&&locLabel) grouped[k].lws.push(locLabel);
+    else if (locType==='lom'&&locLabel) grouped[k].lom.push(locLabel);
+    else if (locType==='other'&&locLabel) grouped[k].other.push(locLabel);
   }
 
-  // 1. LWS Print Mapping — process FIRST so detail rows are the primary entry
-  for (const impact of Object.values(lwsImpacts)) {
-    for (const item of impact.printMappingUpdates) {
-      if (!item.notes) continue;
-      const pair = `${item.removedD} → ${item.replacementD}`;
-      for (const note of item.notes.split('; ')) {
-        if (!note) continue;
-        const isErr = note.includes('new EPR') || note.includes('NOT FOUND');
-        const severity = isErr ? 'ERROR' : 'WARN';
-        const action = isErr
-          ? 'Create missing EPR tray on replacement, then re-run.'
-          : 'Review this workstation mapping manually.';
-        addIssue(severity, pair, note, action, 'lws', `${item.workstationId} (${item.workstation})`);
-      }
-    }
-  }
-
-  // 2. LOM — also before Build Review summary
-  for (const impact of Object.values(lomImpacts)) {
-    for (const item of (impact.lineUpdates || [])) {
-      if (!item.notes) continue;
-      const pair = `${item.removedD} → ${item.replacementD}`;
-      for (const note of item.notes.split('; ')) {
-        if (!note) continue;
-        const isErr = note.includes('new EPR') || note.includes('MISSING');
-        const severity = isErr ? 'ERROR' : 'WARN';
-        const action = isErr
-          ? 'Create missing EPR tray on replacement, then re-run.'
-          : 'Manually verify this LOM record references the correct printer.';
-        addIssue(severity, pair, note, action, 'lom', `${item.lomId} line ${item.lineNum}`);
-      }
-    }
-  }
-
-  // 3. Build Review summary — only add if not already covered by a detail row
-  for (const r of results) {
-    if (!r.errors) continue;
-    for (const e of r.errors.split('; ')) {
-      if (!e) continue;
-      const pair = `${r.removedD} → ${r.replacementD}`;
-      const action = e.includes('not found in EPR')
-        ? 'Verify D# exists in Epic, re-export EPR, and re-run.'
-        : e.includes('new EPR')
-        ? 'Create missing EPR tray on replacement, then re-run.'
-        : 'Review this pair before proceeding.';
-      // Only add if this root cause isn't already in grouped (from LWS/LOM detail)
-      const k = issueKey('ERROR', pair, e);
-      if (!grouped[k]) {
-        addIssue('ERROR', pair, e, action, null, null);
-      }
-    }
-  }
-
-  // ── Step 2: Sort and render ───────────────────────────────────────────────
-  const issues = Object.values(grouped);
-  issues.sort((a, b) => {
-    if (a.severity !== b.severity) return a.severity === 'ERROR' ? -1 : 1;
-    return a.pair.localeCompare(b.pair) || a.issue.localeCompare(b.issue);
+  // LWS first
+  Object.values(lwsImpacts).forEach(function(impact) {
+    impact.printMappingUpdates.forEach(function(item) {
+      if (!item.notes) return;
+      var pair = item.removedD + ' -> ' + item.replacementD;
+      item.notes.split('; ').forEach(function(note) {
+        if (!note) return;
+        var isErr = note.indexOf('new EPR')>=0||note.indexOf('NOT FOUND')>=0;
+        addIssue(isErr?'ERROR':'WARN', pair, note,
+          isErr?'Create missing EPR tray on replacement, then re-run.':'Review this workstation mapping manually.',
+          'lws', item.workstationId+' ('+item.workstation+')');
+      });
+    });
   });
 
-  const errCount = issues.filter(i => i.severity === 'ERROR').length;
-  const warnCount = issues.filter(i => i.severity === 'WARN').length;
+  // LOM second
+  Object.values(lomImpacts).forEach(function(impact) {
+    (impact.lomRecords||[]).forEach(function(item) {
+      if (!item.notes) return;
+      var pair = item.removedD + ' -> ' + item.replacementD;
+      item.notes.split('; ').forEach(function(note) {
+        if (!note) return;
+        var isErr = note.indexOf('new EPR')>=0||note.indexOf('MISSING')>=0||note.indexOf('blanked')>=0;
+        addIssue(isErr?'ERROR':'WARN', pair, note,
+          isErr?'Create missing EPR tray on replacement, then re-run.':'Manually verify this LOM record.',
+          'lom', item.lomId);
+      });
+    });
+  });
 
-  // Tab button
-  const btn = document.getElementById('errors-tab-btn');
-  if (btn) btn.textContent = `⚠ Errors${issues.length ? ' (' + issues.length + ')' : ''}`;
+  // Build Review last
+  results.forEach(function(r) {
+    if (!r.errors) return;
+    var pair = r.removedD + ' -> ' + r.replacementD;
+    r.errors.split('; ').forEach(function(e) {
+      if (!e) return;
+      var action = e.indexOf('not found in EPR')>=0?'Verify D# exists in Epic, re-export EPR, and re-run.':e.indexOf('new EPR')>=0?'Create missing EPR tray on replacement, then re-run.':'Review this pair before proceeding.';
+      var k = issueKey('ERROR', pair, e);
+      if (!grouped[k]) addIssue('ERROR', pair, e, action, null, null);
+    });
+  });
 
-  // Banner
-  const summary = document.getElementById('errors-summary');
-  if (issues.length === 0) {
+  var issues = Object.values(grouped).sort(function(a,b){
+    if (a.severity!==b.severity) return a.severity==='ERROR'?-1:1;
+    return a.pair.localeCompare(b.pair)||a.issue.localeCompare(b.issue);
+  });
+
+  var errCount  = issues.filter(function(i){return i.severity==='ERROR';}).length;
+  var warnCount = issues.filter(function(i){return i.severity==='WARN';}).length;
+
+  var btn = document.getElementById('errors-tab-btn');
+  if (btn) btn.textContent = 'Errors' + (issues.length?' ('+issues.length+')':'');
+
+  var summary = document.getElementById('errors-summary');
+  if (issues.length===0) {
     document.getElementById('errors-banner').style.display = 'none';
   } else {
     document.getElementById('errors-banner').style.display = '';
-    summary.textContent = `${issues.length} unique issue${issues.length !== 1 ? 's' : ''} — ${errCount} error${errCount !== 1 ? 's' : ''}, ${warnCount} warning${warnCount !== 1 ? 's' : ''}`;
+    summary.textContent = issues.length+' unique issue'+(issues.length!==1?'s':'')+' -- '+errCount+' error'+(errCount!==1?'s':'')+', '+warnCount+' warning'+(warnCount!==1?'s':'');
   }
-  document.getElementById('errors-empty').style.display = issues.length ? 'none' : '';
+  document.getElementById('errors-empty').style.display = issues.length?'none':'';
 
-  // Render rows
-  for (const issue of issues) {
-    const isErr = issue.severity === 'ERROR';
-    const tr = document.createElement('tr');
-    tr.className = isErr ? 'row-error' : 'row-warn';
-
-    // Build affected locations nested list
-    const affectedParts = [];
+  issues.forEach(function(issue) {
+    var isErr = issue.severity==='ERROR';
+    var tr = document.createElement('tr');
+    tr.className = isErr?'row-error':'row-warn';
+    var affParts = [];
     if (issue.lws.length) {
-      const unique = [...new Set(issue.lws)];
-      affectedParts.push(`<div style="margin-top:5px;font-size:10px;color:var(--text2)">
-        <span class="badge badge-lws" style="margin-bottom:3px">LWS</span>
-        ${unique.map(l => `<div style="padding-left:12px;color:var(--text2);line-height:1.8">↳ ${esc(l)}</div>`).join('')}
-      </div>`);
+      var uLws = issue.lws.filter(function(v,i,a){return a.indexOf(v)===i;});
+      affParts.push('<div style="margin-top:5px;font-size:10px"><span class="badge badge-lws" style="margin-bottom:3px">LWS</span>'+uLws.map(function(l){return '<div style="padding-left:12px;color:var(--text2);line-height:1.8">-> '+esc(l)+'</div>';}).join('')+'</div>');
     }
     if (issue.lom.length) {
-      const unique = [...new Set(issue.lom)];
-      affectedParts.push(`<div style="margin-top:5px;font-size:10px;color:var(--text2)">
-        <span class="badge badge-lom" style="margin-bottom:3px">LOM</span>
-        ${unique.map(l => `<div style="padding-left:12px;color:var(--text2);line-height:1.8">↳ ${esc(l)}</div>`).join('')}
-      </div>`);
+      var uLom = issue.lom.filter(function(v,i,a){return a.indexOf(v)===i;});
+      affParts.push('<div style="margin-top:5px;font-size:10px"><span class="badge badge-lom" style="margin-bottom:3px">LOM</span>'+uLom.map(function(l){return '<div style="padding-left:12px;color:var(--text2);line-height:1.8">-> '+esc(l)+'</div>';}).join('')+'</div>');
     }
-    if (issue.other.length) {
-      const unique = [...new Set(issue.other)];
-      affectedParts.push(`<div style="margin-top:5px;font-size:10px;color:var(--text2)">
-        ${unique.map(l => `<div style="color:var(--text2);line-height:1.8">↳ ${esc(l)}</div>`).join('')}
-      </div>`);
-    }
-    const affectedHtml = affectedParts.length
-      ? `<div style="margin-top:2px">${affectedParts.join('')}</div>`
-      : '';
-
-    const sevBadge = isErr
-      ? '<span class="badge badge-error">ERROR</span>'
-      : '<span class="badge badge-lom">WARN</span>';
-
-    tr.innerHTML = `
-      <td style="vertical-align:top;white-space:nowrap">${sevBadge}</td>
-      <td style="vertical-align:top;white-space:nowrap;color:var(--text2);font-family:var(--mono);font-size:11px">${esc(issue.pair)}</td>
-      <td style="vertical-align:top">
-        <div style="color:${isErr ? 'var(--error)' : 'var(--warn)'};font-weight:500">${esc(issue.issue)}</div>
-        ${affectedHtml}
-      </td>
-      <td style="vertical-align:top;color:var(--text2);font-size:11px">${esc(issue.action)}</td>
-    `;
+    var sevBadge = isErr?'<span class="badge badge-error">ERROR</span>':'<span class="badge badge-lom">WARN</span>';
+    tr.innerHTML = '<td style="vertical-align:top;white-space:nowrap">'+sevBadge+'</td><td style="vertical-align:top;white-space:nowrap;font-family:var(--mono);font-size:11px;color:var(--text2)">'+esc(issue.pair)+'</td><td style="vertical-align:top"><div style="color:'+(isErr?'var(--error)':'var(--warn)')+';font-weight:500">'+esc(issue.issue)+'</div>'+(affParts.length?'<div>'+affParts.join('')+'</div>':'')+'</td><td style="vertical-align:top;font-size:11px;color:var(--text2)">'+esc(issue.action)+'</td>';
     tbody.appendChild(tr);
-  }
-
+  });
   return issues.length;
 }
 
 function updateSourceInfo() {
   document.getElementById('source-info').style.display = '';
-  document.getElementById('si-epr').textContent = state.eprName || '—';
-  document.getElementById('si-lws').textContent = state.lwsName || '—';
-  document.getElementById('si-lom').textContent = state.lomName || '—';
+  document.getElementById('si-epr').textContent  = state.eprName  || '--';
+  document.getElementById('si-lws').textContent  = state.lwsName  || '--';
+  document.getElementById('si-lom').textContent  = state.lomName  || '--';
   document.getElementById('si-euts').textContent = state.eutsName || 'not loaded';
 }
 
-// ─── Excel download ───────────────────────────────────────────────────────────
+// Excel download
 function downloadExcel() {
   if (!state.results.length) return;
-  const wb = XLSX.utils.book_new();
-  const eutsMap = state.eutsMap || {};
+  var wb = XLSX.utils.book_new();
+  var eutsMap = state.eutsMap || {};
 
-  // Build Review sheet
-  const brHeader = ['Removed D#','Replacement D#','Building','Floor','Department','Room','Current Epic #','Current Epic Name','Replacement Epic #','Replacement Epic Name','Current Trays','Replacement Trays','Current Count','Replacement Count','Fewer Trays?','LWS Rows Impacted','LOM Rows Impacted','Build Updates Needed','Errors','Epic Updates Completed','Printer Ready for Removal'];
-  const brData = [brHeader, ...state.results.map(r => [
-    r.removedD, r.replacementD, ...eutsVals(eutsMap, r.removedD),
-    r.currentEpicNumbers, r.currentEpicNames, r.replacementEpicNumbers, r.replacementEpicNames,
-    r.currentTrays, r.replacementTrays, '', '', r.fewerTrays, r.lwsRows, r.lomRows, r.buildNeeded, r.errors, '', ''
-  ])];
+  var brHeader = ['Removed D#','Replacement D#','Building','Floor','Department','Room','Current Epic #','Current Epic Name','Replacement Epic #','Replacement Epic Name','Current Trays','Replacement Trays','Current Count','Replacement Count','Fewer Trays?','LWS Rows Impacted','LOM Rows Impacted','Build Updates Needed','Errors','Epic Updates Completed','Printer Ready for Removal'];
+  var brData = [brHeader].concat(state.results.map(function(r){ return [r.removedD,r.replacementD].concat(eutsVals(eutsMap,r.removedD)).concat([r.currentEpicNumbers,r.currentEpicNames,r.replacementEpicNumbers,r.replacementEpicNames,r.currentTrays,r.replacementTrays,'','',r.fewerTrays,r.lwsRows,r.lomRows,r.buildNeeded,r.errors,'','']); }));
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(brData), 'Build Review');
 
-  // LWS Print Mapping
-  const lwspHeader = ['Removed D#','Replacement D#','Building','Floor','Department','Room','Workstation ID','Workstation','WS Identifier','Classifications','Current EPR ID','Replacement EPR ID','Mapping Updates','Mapping Count','OTG ID','OTG Name','Notes','Epic Updates Completed'];
-  const lwspData = [lwspHeader];
-  for (const impact of Object.values(state.lwsImpacts)) {
-    for (const item of impact.printMappingUpdates) {
-      lwspData.push([item.removedD, item.replacementD, ...eutsVals(eutsMap, item.removedD), item.workstationId, item.workstation, item.workstationIdentifier, item.printerClassificationsText, item.currentEprIdsText, item.replacementEprIdsText, item.printerUpdatesText, item.mappingCount, item.currentOtgId, item.currentOtgName, item.notes, '']);
-    }
-  }
+  var lwspHeader = ['Removed D#','Replacement D#','Building','Floor','Department','Room','Workstation ID','Workstation','WS Identifier','Classifications','Current EPR ID','Replacement EPR ID','Mapping Updates','Mapping Count','OTG ID','OTG Name','Notes','Epic Updates Completed'];
+  var lwspData = [lwspHeader];
+  Object.values(state.lwsImpacts).forEach(function(impact){ impact.printMappingUpdates.forEach(function(item){ lwspData.push([item.removedD,item.replacementD].concat(eutsVals(eutsMap,item.removedD)).concat([item.workstationId,item.workstation,item.workstationIdentifier,item.printerClassificationsText,item.currentEprIdsText,item.replacementEprIdsText,item.printerUpdatesText,item.mappingCount,item.currentOtgId,item.currentOtgName,item.notes,''])); }); });
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(lwspData), 'LWS_Print_Mapping_Updates');
 
-  // LWS Groups
-  const lwsgHeader = ['Removed D#','Replacement D#','Building','Floor','Department','Room','Workstation ID','Workstation','WS Identifier','OTG ID','OTG Name','Related LOM Count','Notes','Epic Updates Completed'];
-  const lwsgData = [lwsgHeader];
-  for (const impact of Object.values(state.lwsImpacts)) {
-    for (const item of impact.groupUpdates) {
-      lwsgData.push([item.removedD, item.replacementD, ...eutsVals(eutsMap, item.removedD), item.workstationId, item.workstation, item.workstationIdentifier, item.currentOtgId, item.currentOtgName, item.relatedLomCount, item.notes, '']);
-    }
-  }
+  var lwsgHeader = ['Removed D#','Replacement D#','Building','Floor','Department','Room','Workstation ID','Workstation','WS Identifier','OTG ID','OTG Name','Related LOM Count','Notes','Epic Updates Completed'];
+  var lwsgData = [lwsgHeader];
+  Object.values(state.lwsImpacts).forEach(function(impact){ impact.groupUpdates.forEach(function(item){ lwsgData.push([item.removedD,item.replacementD].concat(eutsVals(eutsMap,item.removedD)).concat([item.workstationId,item.workstation,item.workstationIdentifier,item.currentOtgId,item.currentOtgName,item.relatedLomCount,item.notes,''])); }); });
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(lwsgData), 'LWS_Group_Updates');
 
-  // LOM Updates
-  const lomHeader = ['Removed D#','Replacement D#','Building','Floor','Department','Room','LOM ID','LOM Name','Name Contains D#?','Dest WS ID','Line #','Current WS Name','Replacement WS Name','Tray Type','OTG Link','Notes','Epic Updates Completed'];
-  const lomXlData = [lomHeader];
-  for (const impact of Object.values(state.lomImpacts)) {
-    for (const item of (impact.lineUpdates || [])) {
-      lomXlData.push([
-        item.removedD, item.replacementD, ...eutsVals(eutsMap, item.removedD),
-        item.lomId, item.lomName, item.nameMatch ? 'Yes' : 'No - Mismatch',
-        item.destWsId, item.lineNum,
-        item.currentWsName, item.replacementWsName,
-        item.trayKey, item.otgLink, item.notes, ''
-      ]);
-    }
-  }
+  var lomHeader = ['Removed D#','Replacement D#','Building','Floor','Department','Room','.1 LOM ID','.2 LOM Name','100 Dest Descriptor','.100 Dest Descriptor Name','110 Dest WS ID','.110 Current WS Names','.110 Replacement WS Names','280 OTG Link','Name Match?','Notes','Epic Updates Completed'];
+  var lomXlData = [lomHeader];
+  Object.values(state.lomImpacts).forEach(function(impact){ (impact.lomRecords||[]).forEach(function(item){ lomXlData.push([item.removedD,item.replacementD].concat(eutsVals(eutsMap,item.removedD)).concat([item.lomId,item.lomName,item.destDescriptor,item.destDescriptorName,item.destWsId,item.currentWsNames.join('\n'),item.replacementWsNames.join('\n'),item.col280,item.nameMatch?'Yes':'No - Mismatch',item.notes,''])); }); });
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(lomXlData), 'LOM_Updates');
 
-  // Errors sheet
-  const errHeader = ['Severity','Pair','Source','Location','Issue','Action Required'];
-  const errXlData = [errHeader];
-  document.querySelectorAll('#errors-tbody tr').forEach(tr => {
-    const cells = tr.querySelectorAll('td');
-    errXlData.push([...cells].map(td => td.innerText.trim()));
-  });
+  var errHeader = ['Severity','Pair','Root Cause','Action Required'];
+  var errXlData = [errHeader];
+  document.querySelectorAll('#errors-tbody tr').forEach(function(tr){ var cells=tr.querySelectorAll('td'); errXlData.push([].slice.call(cells).map(function(td){return td.innerText.trim();})); });
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(errXlData), 'Errors');
 
-  // Run Info
-  const now = new Date().toLocaleString();
-  const runData = [['Source','File','Loaded'],['EPR', state.eprName, now],['LWS', state.lwsName, now],['LOM', state.lomName, now],['EUTS', state.eutsName || 'not loaded', now]];
+  var now = new Date().toLocaleString();
+  var runData = [['Source','File','Loaded','Version'],['EPR',state.eprName,now,APP_VERSION],['LWS',state.lwsName,now,APP_VERSION],['LOM',state.lomName,now,APP_VERSION],['EUTS',state.eutsName||'not loaded',now,APP_VERSION]];
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(runData), 'Run Info');
 
-  const ts = new Date().toISOString().replace(/[:.]/g,'-').slice(0,19);
-  const batchName = (document.getElementById('batch-name').value || '').trim().replace(/[^a-zA-Z0-9_\- ]/g,'').replace(/\s+/g,'_');
-  const fname = batchName
-    ? `Epic_Printer_Build_Review_${batchName}_${ts}.xlsx`
-    : `Epic_Printer_Build_Review_${ts}.xlsx`;
+  var batchName = (document.getElementById('batch-name').value||'').trim().replace(/[^a-zA-Z0-9_\- ]/g,'').replace(/\s+/g,'_');
+  var fname = batchName ? ('Epic_Printer_Build_Review_v3_'+batchName+'_'+ts()+'.xlsx') : ('Epic_Printer_Build_Review_v3_'+ts()+'.xlsx');
   XLSX.writeFile(wb, fname);
 }
 
-// ─── Flat file download ───────────────────────────────────────────────────────
-function downloadFlat() {
-  if (!state.flatContent) return;
-  const blob = new Blob([state.flatContent], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = `LWS_updates_${new Date().toISOString().replace(/[:.]/g,'-').slice(0,19)}.txt`;
-  a.click(); URL.revokeObjectURL(url);
-}
-
-// ─── Demo Data ────────────────────────────────────────────────────────────────
-// Pre-built row arrays matching the format each parser expects.
-// 5 header rows are prepended so getRows(data, 5) skips them correctly.
-
-function buildDemoData() {
-  const HEADERS = [['H'],['H'],['H'],['H'],['H']]; // 5 dummy header rows
-
-  // ── EPR demo rows ──────────────────────────────────────────────────────────
-  // col0=deviceId, col1=deviceName, col2=printerPath
-  const eprRows = [
-    // D40150 — plain paper only
-    ['EPR-10201','EPSCL-I3-D40150',           '\\print\\EPSCL-I3-D40150'],
-    // D42432 — plain paper replacement for D40150
-    ['EPR-10445','EPSCL-I3-D42432',           '\\print\\EPSCL-I3-D42432'],
-    // D40157 — 3 trays: plain, WB, T1
-    ['EPR-20301','EPSCL-I3-D40157',           '\\print\\EPSCL-I3-D40157'],
-    ['EPR-20302','EPSCL-I3-D40157-WB',        '\\print\\EPSCL-I3-D40157-WB'],
-    ['EPR-20303','EPSCL-I3-D40157-T1',        '\\print\\EPSCL-I3-D40157-T1'],
-    // D40158 — replacement for D40157 — MISSING WB tray (only plain + T1)
-    ['EPR-20401','EPSCL-I3-D40158',           '\\print\\EPSCL-I3-D40158'],
-    ['EPR-20402','EPSCL-I3-D40158-T1',        '\\print\\EPSCL-I3-D40158-T1'],
-    // D09088 — plain + T1
-    ['EPR-30101','EPSCL-I3-D09088',           '\\print\\EPSCL-I3-D09088'],
-    ['EPR-30102','EPSCL-I3-D09088-T1',        '\\print\\EPSCL-I3-D09088-T1'],
-    // D09007 — NOT IN EPR (replacement not found scenario)
-    // D25933 — plain only (N/A replacement)
-    ['EPR-40011','EPSCL-I3-D25933',           '\\print\\EPSCL-I3-D25933'],
-  ];
-
-  // ── LWS demo rows ──────────────────────────────────────────────────────────
-  // col0=wsId, col1=wsName, col2=wsIdentifier, col3=otgId, col4=otgName
-  // col5=classifications, col6=(unused), col7=remoteDeviceIds, col8=remoteDeviceNames
-  // col9=deviceConfigIds, col10=(unused), col11=printPrompts, col12=printOptions
-  const lwsRows = [
-    // WS10042 — maps D40150 (plain)
-    ['WS10042','ICU-NW-WS01','ICU-NW-WS01-INST','OTG-881','ICU NW Orders',
-     'LBL Pt List','','EPR-10201','EPSCL-I3-D40150','CFG-10201','','',''],
-    // WS10089 — also maps D40150
-    ['WS10089','ICU-NW-WS02','ICU-NW-WS02-INST','OTG-881','ICU NW Orders',
-     'LBL Pt List','','EPR-10201','EPSCL-I3-D40150','CFG-10201','','',''],
-    // WS20011 — maps D40157 (3 trays: plain, WB, T1) — multiline via newlines
-    ['WS20011','ED-TRIAGE-WS01','ED-TRIAGE-WS01-INST','OTG-412','ED Triage Orders',
-     'LBL Pt\nWB\nPlain','',
-     'EPR-20301\nEPR-20302\nEPR-20303',
-     'EPSCL-I3-D40157\nEPSCL-I3-D40157-WB\nEPSCL-I3-D40157-T1',
-     'CFG-201\nCFG-202\nCFG-203','','',''],
-    // WS20019 — maps D40157 (WB + plain)
-    ['WS20019','ED-TRIAGE-WS02','ED-TRIAGE-WS02-INST','OTG-412','ED Triage Orders',
-     'WB\nPlain','',
-     'EPR-20302\nEPR-20301',
-     'EPSCL-I3-D40157-WB\nEPSCL-I3-D40157',
-     'CFG-202\nCFG-201','','',''],
-    // WS30055 — maps D09088 (T1 + plain) — replacement not in EPR
-    ['WS30055','PHARM-MAIN-WS01','PHARM-MAIN-WS01-INST','OTG-550','Pharmacy Orders',
-     'RX\nPlain','',
-     'EPR-30101\nEPR-30102',
-     'EPSCL-I3-D09088-T1\nEPSCL-I3-D09088',
-     'CFG-301\nCFG-302','','',''],
-    // WS40022 — maps D25933 (N/A)
-    ['WS40022','LAB-SPEC-WS01','LAB-SPEC-WS01-INST','','',
-     'Plain','','EPR-40011','EPSCL-I3-D25933','CFG-401','','',''],
-    ['WS40031','LAB-SPEC-WS02','LAB-SPEC-WS02-INST','','',
-     'Plain','','EPR-40011','EPSCL-I3-D25933','CFG-401','','',''],
-    // LWS printer records for replacement D#s (no classification data = printer records)
-    // D42432 workstation entry (plain)
-    ['WS10445','EPSCL-I3-D42432','EPSCL-I3-D42432-INST','','','','','','','','','',''],
-    // D40158 workstation entries (plain + T1, no WB)
-    ['WS20401','EPSCL-I3-D40158','EPSCL-I3-D40158-INST','','','','','','','','','',''],
-    ['WS20402','EPSCL-I3-D40158-T1','EPSCL-I3-D40158-T1-INST','','','','','','','','','',''],
-  ];
-
-  // ── LOM demo rows ──────────────────────────────────────────────────────────
-  // col0=lomId, col1=lomName, col2=destDescriptor, col3=destDescriptorName
-  // col4=destWsId, col5=destWsName (multiline), col6=col280, col7=colDot280
-  const lomRows = [
-    ['LOM-2201','ICU NW Pt Labels D40150','DESC-881','ICU NW Descriptor',
-     'WS10042','EPSCL-I3-D40150','OTG-881','ICU NW Orders'],
-    ['LOM-2202','ICU NW Orders D40150','DESC-881','ICU NW Descriptor',
-     'WS10089','EPSCL-I3-D40150','OTG-881','ICU NW Orders'],
-    // Name mismatch — LOM name doesn't contain D40150
-    ['LOM-2203','ICU NW Overflow Routing','DESC-881','ICU NW Descriptor',
-     'WS10042','EPSCL-I3-D40150','OTG-881','ICU NW Orders'],
-    // D40157 multi-tray LOM record
-    ['LOM-3301','ED Triage Labels D40157','DESC-412','ED Triage Descriptor',
-     'WS20011','EPSCL-I3-D40157-T1\nEPSCL-I3-D40157-WB\nEPSCL-I3-D40157','OTG-412','ED Triage Orders'],
-    ['LOM-3302','ED Wristband Print D40157','DESC-412','ED Triage Descriptor',
-     'WS20019','EPSCL-I3-D40157-WB','OTG-412','ED Triage Orders'],
-    // D09088
-    ['LOM-4401','Pharmacy RX Print D09088','DESC-550','Pharmacy Descriptor',
-     'WS30055','EPSCL-I3-D09088-T1\nEPSCL-I3-D09088','OTG-550','Pharmacy Orders'],
-  ];
-
-  return {
-    epr: [...HEADERS, ...eprRows],
-    lws: [...HEADERS, ...lwsRows],
-    lom: [...HEADERS, ...lomRows],
-  };
-}
-
-async function loadDemo() {
-  const demo = buildDemoData();
-
-  // Inject into state as if files were loaded
-  state.eprData = demo.epr;
-  state.lwsData = demo.lws;
-  state.lomData = demo.lom;
-  state.eutsData = null;
-  state.eprName  = 'DEMO_AAAHLMKEPR.xml';
-  state.lwsName  = 'DEMO_AAAHLMKLWS30.xml';
-  state.lomName  = 'DEMO_AAAHLMKLOM.xml';
-  state.eutsName = '';
-
-  // Mark file drop zones as loaded
-  ['epr','lws','lom'].forEach(k => {
-    const nameEl = document.getElementById(k + '-name');
-    const dropEl = document.getElementById(k + '-drop');
-    if (nameEl) { nameEl.textContent = `DEMO_AAAHLMK${k.toUpperCase()}.xml`; nameEl.classList.remove('placeholder'); }
-    if (dropEl) dropEl.classList.add('loaded');
+// Resizable columns
+function makeTableResizable(table) {
+  if (!table) return;
+  var ths = table.querySelectorAll('th');
+  ths.forEach(function(th) {
+    if (th.querySelector('.resize-handle')) return;
+    var handle = document.createElement('div');
+    handle.className = 'resize-handle';
+    th.appendChild(handle);
+    var startX, startW;
+    handle.addEventListener('mousedown', function(e) {
+      e.preventDefault();
+      startX = e.pageX; startW = th.offsetWidth;
+      th.classList.add('resizing');
+      function onMove(e) { var w=Math.max(60,startW+(e.pageX-startX)); th.style.width=w+'px'; th.style.minWidth=w+'px'; }
+      function onUp() { th.classList.remove('resizing'); document.removeEventListener('mousemove',onMove); document.removeEventListener('mouseup',onUp); }
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
   });
-
-  // Set paste box with demo pairs
-  document.getElementById('paste-box').value =
-    'D40150\tD42432\nD40157\tD40158\nD09088\tD09007\nD25933\tN/A';
-
-  // Enable both flat file options so all tabs are visible
-  document.getElementById('opt-lws-flat').checked = true;
-  document.getElementById('opt-lom-flat').checked = true;
-
-  // Set demo batch name
-  const batchInput = document.getElementById('batch-name');
-  if (batchInput) batchInput.value = 'Demo Batch';
-  setStatus('idle', 'Demo data loaded — click Generate Build Review to run.');
-
-  // Auto-run
-  await runAnalysis();
 }
+function initResizableTables() { document.querySelectorAll('table').forEach(makeTableResizable); }
 </script>
 </body>
 </html>
